@@ -1,4 +1,8 @@
-//vars
+//Variables
+//Input -- Llibreria controlP5
+//import controlP5.*;
+//ControlP5 cp5;
+//String textValue = "";
 
 //player
 float pjX;
@@ -26,7 +30,19 @@ float[] powDownX = new float [3];
 float[] powDownY = new float [3];
 boolean[] powDownGet = new boolean [3];
 
-//start
+//PNJS N (enemics)
+int n = 5;
+float[] x_pnj = new float[n]; //5 momentani, s'ha de fer lo de input nº enemics
+float[] y_pnj = new float[n]; //5 momentani, s'ha de fer lo de input nº enemics
+float[] alfa = new float[n]; //5 momentani, s'ha de fer lo de input nº enemics
+
+int counterNSpawning = second(), startN = second();
+int m = 0;
+
+
+
+
+//Set-Up
 void setup()
 {
   //pantalla
@@ -74,9 +90,50 @@ void setup()
     powDownGet[i] = false;
   }
   
+  //Bucle per decidir a quina punta del mapa els enemics fan spawn
+  for (int i = 0; i < n; i++)
+  {
+    int a = (int)random(1,4); //Random int per poder fer servir el switch i assignar el valor a les coordennades X i Y de cada enemic de forma random
+    
+    switch(a)
+    {
+      case 1:
+      x_pnj[i] = 0;
+      y_pnj[i] = 0;
+      break;
+      case 2:
+      x_pnj[i] = 0;
+      y_pnj[i] = height;
+      break;
+      case 3: 
+      x_pnj[i] = width;
+      y_pnj[i] = 0;
+      break;
+      case 4: 
+      x_pnj[i] = width;
+      y_pnj[i] = height;
+      break;
+    }
+  }
+  
+  
+  for (int i = 0; i < n; i++)
+  {
+    if (i < n/2)
+    {
+      alfa[i] = random(-0.0001f,-0.0002f); 
+    }
+    else
+    {
+      alfa[i] = random(0.008f,0.002f); 
+    }
+  }  
 }
 
-//udpate
+
+
+
+//Draw
 void draw()
 {
   
@@ -132,7 +189,7 @@ void draw()
   }
   
   //powerdowns
-  fill(255, 255, 255);
+  fill(255);
   for (int i = 0; i < 3 && powers ; i++)
   {
     if (!powDownGet[i])
@@ -141,7 +198,48 @@ void draw()
     }
   }
 
+
+ //Draw els enemics
+ if (m > 0)
+ {
+   for (int i = 0; i < m; i++)
+   {
+     fill(255,0,0);
+     ellipse(x_pnj[i],y_pnj[i], width/25, height/25);
+   }
+  // p(alfa) = PNJ + alfa * PJ --> p(alfa) = (1-alfa) * PNJ + alfa * PJ
+  for(int i = 0; i < m/2; i++)
+  {
+    x_pnj[i] = (1.0 - alfa[i]) * x_pnj[i] + alfa[i] * pjX;
+    y_pnj[i] = (1.0 - alfa[i]) * y_pnj[i] + alfa[i] * pjY; 
+  }
+    for(int i = m/2; i < m/4 + m/2; i++)
+  {
+    x_pnj[i] = (1.0 - alfa[i]) * x_pnj[i] + alfa[i] * pnjX[0];
+    y_pnj[i] = (1.0 - alfa[i]) * y_pnj[i] + alfa[i] * pnjY[0]; 
+  }
+    for(int i = m/2+m/4; i < m; i++)
+  {
+    x_pnj[i] = (1.0 - alfa[i]) * x_pnj[i] + alfa[i] * pnjX[1];
+    y_pnj[i] = (1.0 - alfa[i]) * y_pnj[i] + alfa[i] * pnjY[1]; 
+  }
+ }
+ 
+  EnemySpawner();
 }
+
+
+//EVENTOS
+void EnemySpawner()
+{
+  if (second() >= counterNSpawning+2 && m < n)
+  {
+      m++;
+      counterNSpawning = second();
+  }
+}
+
+
 
 void mouseMoved()
 {
