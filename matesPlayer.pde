@@ -1,8 +1,6 @@
+//Pràctica AA1
 //Variables
-//Input -- Llibreria controlP5
-//import controlP5.*;
-//ControlP5 cp5;
-//String textValue = "";
+import controlP5.*;
 
 //player
 float pjX;
@@ -39,6 +37,8 @@ float[] alfa = new float[n]; //5 momentani, s'ha de fer lo de input nº enemics
 int counterNSpawning = second(), startN = second();
 int m = 0;
 
+//ControlP5 input
+ControlP5 cp5;
 
 
 
@@ -121,13 +121,16 @@ void setup()
   {
     if (i < n/2)
     {
-      alfa[i] = random(-0.0001f,-0.0002f); 
+      alfa[i] = random(-0.01f,-0.02f); 
     }
     else
     {
       alfa[i] = random(0.008f,0.002f); 
     }
   }  
+
+  input(); //funcio inputs
+
 }
 
 
@@ -210,8 +213,16 @@ void draw()
   // p(alfa) = PNJ + alfa * PJ --> p(alfa) = (1-alfa) * PNJ + alfa * PJ
   for(int i = 0; i < m/2; i++)
   {
-    x_pnj[i] = (1.0 - alfa[i]) * x_pnj[i] + alfa[i] * pjX;
-    y_pnj[i] = (1.0 - alfa[i]) * y_pnj[i] + alfa[i] * pjY; 
+    if (checkDist(pjX,pjY,x_pnj[i],y_pnj[i]) >= width/2)
+    {
+      x_pnj[i] = (1.0 - (-alfa[i])) * x_pnj[i] + (-alfa[i]) * pjX;
+      y_pnj[i] = (1.0 - (-alfa[i])) * y_pnj[i] + (-alfa[i]) * pjY; 
+    }
+    else
+    {
+      x_pnj[i] = (1.0 - alfa[i]) * x_pnj[i] + alfa[i] * pjX;
+      y_pnj[i] = (1.0 - alfa[i]) * y_pnj[i] + alfa[i] * pjY; 
+    }
   }
     for(int i = m/2; i < m/4 + m/2; i++)
   {
@@ -279,4 +290,37 @@ void mouseMoved()
 float checkDist(float x1, float y1, float x2, float y2)
 {
   return (new PVector (x1 - x2, y1 - y2).mag()); 
+}
+
+
+void input()
+{
+  PFont font = createFont("arial",20); //Variable que indica la font que volem fer servir(Arial, mida 20) pels components d'aquesta llibreria
+  cp5 = new ControlP5(this);
+  
+  //Butons per escollir el tipu de controls que es faran servir per la partida
+  cp5.addRadioButton("controlType") //Creació d'element per escollir el tipu de controls pel joc
+   .setFont(font) //Seteja la font que hem posat en variable anteriorment perque aquest component la faci servir(Arial, 20)
+   .setPosition(200,200) //posicio dins la pantalla del component
+   .setItemWidth(50) //Width dels butons que es defineixen seguidament
+   .setItemHeight(40) //Height dels butons que es defineixen seguidament
+   .addItem("Ratolí", 0) //Creador d'un botó "Ratolí" que definim com a 0
+   .addItem("Teclat", 1) //Creador d'un botó "Teclat" que definim com a 1 (1 i 0 funcionen com un true / false.)
+   .activate(0) //Element que seteja des del principi una de les dos opcions(en aquest cas la del ratolí)
+   ;
+  
+  //Input Nombre Enemics
+  cp5.addTextfield("Introdueix el Nombre d'Enemics")
+   .setFont(font) 
+   .setPosition(200,300) 
+   .setSize(350,35) //Mides del component
+   .setText("13") //Text que es seteja ja escrit dins del component al principi
+   ;
+   
+   //Butó per canviar de fase/fer enter de les opcions escollides per poder jugar al joc
+   cp5.addBang("START GAME")
+    .setFont(font) 
+    .setPosition(270,400)
+    .setSize(200,55)
+    ;
 }
