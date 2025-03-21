@@ -3,6 +3,9 @@
 //player
 float pjX;
 float pjY;
+float pjSpeed;
+float pjSize;
+int[] pjDir = new int[2];
 
 //pnjs (aliats)
 float[] pnjX = new float [2];
@@ -26,6 +29,9 @@ float[] powDownX = new float [3];
 float[] powDownY = new float [3];
 boolean[] powDownGet = new boolean [3];
 
+enum Scene{MENU, GAMEPLAY, BOSS, GAMEOVER}
+Scene actualScene;
+
 //start
 void setup()
 {
@@ -34,6 +40,12 @@ void setup()
   
   //asegurarnos de que cuadrados/rectangulos aparecen al centro de las coordenadas
   rectMode(CENTER);
+  
+  actualScene = Scene.MENU;
+  
+  //pj stats
+  pjSize = width/20;
+  pjSpeed = 7;
   
   //pnjs stats
   pnjS[0] = 5;
@@ -93,7 +105,6 @@ void draw()
     powers = true;
   }
   
-  
   //pnjs calc
   for (int i = 0; i < 2; i++)
   {
@@ -109,14 +120,21 @@ void draw()
   
   //RENDERS
   
+  //portal
+  if (powUpGot == 3)// miramos la condicion para crear el portal
+  {
+    fill(255, 0, 255);
+    ellipse(width/2, height/2, width/3, width/3);
+  }
+  
   //pj
   fill(0, 255, 0);
-  ellipse(pjX, pjY, width/20, height/20);
+  ellipse(pjX, pjY, pjSize, pjSize);
   
   //pnj1
   fill(0, 174, 230);
   ellipse(pnjX[0], pnjY[0], width/20, height/20);
-  fill(174, 0, 174);
+  fill(230, 230, 0);
   
   //pnj2
   ellipse(pnjX[1], pnjY[1], width/20, height/20);
@@ -127,7 +145,7 @@ void draw()
   {
     if (!powUpGet[i])
     {
-      square(powUpX[i], powUpY[i], 20);
+      square(powUpX[i], powUpY[i], width/40);
     }
   }
   
@@ -137,7 +155,7 @@ void draw()
   {
     if (!powDownGet[i])
     {
-      square(powDownX[i], powDownY[i], 20);
+      square(powDownX[i], powDownY[i], width/40);
     }
   }
 
@@ -157,9 +175,24 @@ void mouseMoved()
   {
     if (!powUpGet[i])
     {
-      if (checkDist(pjX, pjY, powUpX[i], powUpY[i]) < 30)
+      if (checkDist(pjX, pjY, powUpX[i], powUpY[i]) < pjSize)
       {
         powUpGet[i] = true;
+        powUpGot++;
+        
+        switch(i)
+        {
+          case 0:
+            pjSize *= 1.5;
+            break;
+          case 1:
+            pnjS[0] = 7;
+            pnjS[1] = 5;
+            break;
+          case 2:
+            pjSpeed = 10;
+            break;
+        }
       }
     }
   }
@@ -176,6 +209,33 @@ void mouseMoved()
     }
   }
   
+}
+
+void keyPressed()
+{
+  
+  switch(keyCode)
+  {
+    case UP:
+      pjDir[1] = -1;
+      break;
+    case DOWN:
+      pjDir[1] = 1;
+      break;
+    case LEFT:
+      pjDir[0] = -1;
+      break;
+    case RIGHT:
+      pjDir[0] = 1;
+      break;
+    default:
+      pjDir[0] = 0;
+      pjDir[1] = 0;
+    
+  }
+  
+  println(pjDir[0], pjDir[1]);
+
 }
 
 float checkDist(float x1, float y1, float x2, float y2)
