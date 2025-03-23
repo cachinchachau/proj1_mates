@@ -5,6 +5,9 @@ import controlP5.*;
 //player
 float pjX;
 float pjY;
+float pjSpeed;
+float pjSize;
+int[] pjDir = new int[2];
 
 //pnjs (aliats)
 float[] pnjX = new float [2];
@@ -18,10 +21,9 @@ PVector[] pnjV = new PVector [2];
 float[] powUpX = new float [3];
 float[] powUpY = new float [3];
 boolean[] powUpGet = new boolean [3];
-
 int powUpGot; //int que cuenta los power ups conseguidos para saber cuando spawnear el portal
-
 boolean powers; //bool para spawnear los powerups/downs
+boolean powsSpawned; //bool para ver si ya han spawneado los powerUps/Downs
 
 //power downs
 float[] powDownX = new float [3];
@@ -37,6 +39,9 @@ float[] alfa = new float[n]; //5 momentani, s'ha de fer lo de input nº enemics
 int counterNSpawning = second(), startN = second();
 int m = 0;
 
+enum Scene{MENU, GAMEPLAY, BOSS, GAMEOVER}
+Scene actualScene;
+
 //ControlP5 input
 ControlP5 cp5;
 
@@ -50,6 +55,12 @@ void setup()
   
   //asegurarnos de que cuadrados/rectangulos aparecen al centro de las coordenadas
   rectMode(CENTER);
+  
+  actualScene = Scene.MENU;
+  
+  //pj stats
+  pjSize = width/20;
+  pjSpeed = 7;
   
   //pnjs stats
   pnjS[0] = 5;
@@ -66,11 +77,13 @@ void setup()
   pnjX[1] = random(750);
   pnjY[1] = random(750);
   
-  //powerUps spawnpoint
+  //powerUps spawn
+  powsSpawned = false;
+  
   for (int i = 0; i < 3; i++)
   {
-    powUpX[i] = random(50, 750);
-    powUpY[i] = random(50, 750);
+    powUpX[i] = 10000;
+    powUpY[i] = 10000;
   }
   //powerDowns spawnpoint
   for (int i = 0; i < 3; i++)
@@ -129,7 +142,7 @@ void setup()
     }
   }  
 
-  input(); //funcio inputs
+  //input(); //funcio inputs
 
 }
 
@@ -142,6 +155,23 @@ void draw()
   
   background(0, 0, 0);
   
+  switch (actualScene)
+  {
+    case MENU:
+      
+      break;
+    case GAMEPLAY:
+      
+      break;
+    case BOSS:
+      
+      break;
+    case GAMEOVER:
+      
+      break;
+      
+  }
+  
   pjX = mouseX;
   pjY = mouseY;
   
@@ -151,7 +181,52 @@ void draw()
     //ahora te sigue
     pnjS[1] = 3;
     powers = true;
+    
+    if (!powsSpawned)
+    {
+      
+      //spawnPows
+      for (int i = 0; i < 3; i++)
+      {
+        boolean canSpawn = false;
+        
+        while(!canSpawn)// con este bucle nos aseguramos de que no spawneen encima del jugador, por lo tanto coleccionandolos automaticamente.
+        {
+          powUpX[i] = random(50, 750);
+          powUpY[i] = random(50, 750);
+          
+          if (checkDist(pjX, pjY, powUpX[i], powUpY[i]) > width/20)
+          {
+            canSpawn = true;
+          }
+          
+        }
+        
+      }
+      //powerDowns spawnpoint
+      for (int i = 0; i < 3; i++)
+      {
+        boolean canSpawn = false;
+        
+        while(!canSpawn)
+        {
+          powDownX[i] = random(50, 750);
+          powDownY[i] = random(50, 750);
+          
+          if (checkDist(pjX, pjY, powDownX[i], powDownY[i]) > width/20)
+          {
+            canSpawn = true;
+          }
+          
+        }
+        
+      }
+      powsSpawned = true;
+    }
+    
   }
+  
+  //CALC
   
   
   //pnjs calc
@@ -166,12 +241,43 @@ void draw()
     }
   }
   
+  // p(alfa) = PNJ + alfa * PJ --> p(alfa) = (1-alfa) * PNJ + alfa * PJ
+  for(int i = 0; i < m/2; i++)
+  {
+    if (checkDist(pjX,pjY,x_pnj[i],y_pnj[i]) >= width/2)
+    {
+      x_pnj[i] = (1.0 - (-alfa[i])) * x_pnj[i] + (-alfa[i]) * pjX;
+      y_pnj[i] = (1.0 - (-alfa[i])) * y_pnj[i] + (-alfa[i]) * pjY; 
+    }
+    else
+    {
+      x_pnj[i] = (1.0 - alfa[i]) * x_pnj[i] + alfa[i] * pjX;
+      y_pnj[i] = (1.0 - alfa[i]) * y_pnj[i] + alfa[i] * pjY; 
+    }
+  }
+    for(int i = m/2; i < m/4 + m/2; i++)
+  {
+    x_pnj[i] = (1.0 - alfa[i]) * x_pnj[i] + alfa[i] * pnjX[0];
+    y_pnj[i] = (1.0 - alfa[i]) * y_pnj[i] + alfa[i] * pnjY[0]; 
+  }
+    for(int i = m/2+m/4; i < m; i++)
+  {
+    x_pnj[i] = (1.0 - alfa[i]) * x_pnj[i] + alfa[i] * pnjX[1];
+    y_pnj[i] = (1.0 - alfa[i]) * y_pnj[i] + alfa[i] * pnjY[1]; 
+  }
   
   //RENDERS
   
+  //portal
+  if (powUpGot == 3)// miramos la condicion para crear el portal
+  {
+    fill(255, 0, 255);
+    ellipse(width/2, height/2, width/3, width/3);
+  }
+  
   //pj
   fill(0, 255, 0);
-  ellipse(pjX, pjY, width/20, height/20);
+  ellipse(pjX, pjY, pjSize, pjSize);
   
   //pnj1
   fill(0, 174, 230);
@@ -201,7 +307,6 @@ void draw()
     }
   }
 
-
  //Draw els enemics
  if (m > 0)
  {
@@ -210,30 +315,6 @@ void draw()
      fill(255,0,0);
      ellipse(x_pnj[i],y_pnj[i], width/25, height/25);
    }
-  // p(alfa) = PNJ + alfa * PJ --> p(alfa) = (1-alfa) * PNJ + alfa * PJ
-  for(int i = 0; i < m/2; i++)
-  {
-    if (checkDist(pjX,pjY,x_pnj[i],y_pnj[i]) >= width/2)
-    {
-      x_pnj[i] = (1.0 - (-alfa[i])) * x_pnj[i] + (-alfa[i]) * pjX;
-      y_pnj[i] = (1.0 - (-alfa[i])) * y_pnj[i] + (-alfa[i]) * pjY; 
-    }
-    else
-    {
-      x_pnj[i] = (1.0 - alfa[i]) * x_pnj[i] + alfa[i] * pjX;
-      y_pnj[i] = (1.0 - alfa[i]) * y_pnj[i] + alfa[i] * pjY; 
-    }
-  }
-    for(int i = m/2; i < m/4 + m/2; i++)
-  {
-    x_pnj[i] = (1.0 - alfa[i]) * x_pnj[i] + alfa[i] * pnjX[0];
-    y_pnj[i] = (1.0 - alfa[i]) * y_pnj[i] + alfa[i] * pnjY[0]; 
-  }
-    for(int i = m/2+m/4; i < m; i++)
-  {
-    x_pnj[i] = (1.0 - alfa[i]) * x_pnj[i] + alfa[i] * pnjX[1];
-    y_pnj[i] = (1.0 - alfa[i]) * y_pnj[i] + alfa[i] * pnjY[1]; 
-  }
  }
  
   EnemySpawner();
@@ -257,18 +338,33 @@ void mouseMoved()
   
   //COLLISIONES
   
-  println(checkDist(pjX, pjY, powUpX[0], powUpY[0]));
-  println(pjX, pjY);
-  println(powUpX[0], powUpY[0]);
+  //println(checkDist(pjX, pjY, powUpX[0], powUpY[0]));
+  //println(pjX, pjY);
+  //println(powUpX[0], powUpY[0]);
   
   //powerUps
   for (int i = 0; i < 3; i++)
   {
     if (!powUpGet[i])
     {
-      if (checkDist(pjX, pjY, powUpX[i], powUpY[i]) < 30)
+      if (checkDist(pjX, pjY, powUpX[i], powUpY[i]) < pjSize)
       {
         powUpGet[i] = true;
+         powUpGot++;
+        
+        switch(i)
+        {
+          case 0:
+            pjSize *= 1.5;
+            break;
+          case 1:
+            pnjS[0] = 7;
+            pnjS[1] = 5;
+            break;
+          case 2:
+            pjSpeed = 10;
+            break;
+        }
       }
     }
   }
@@ -278,7 +374,7 @@ void mouseMoved()
   {
     if (!powDownGet[i])
     {
-      if (checkDist(pjX, pjY, powDownX[i], powDownY[i]) < 30)
+      if (checkDist(pjX, pjY, powDownX[i], powDownY[i]) < pjSize/1.25) //dividimos entre 1,25 ya que sino lo hacemos al detectar al jugador cuando ha tenido su tama;o augmentado no queda bien
       {
         powDownGet[i] = true;
       }
@@ -287,40 +383,68 @@ void mouseMoved()
   
 }
 
+void keyPressed()
+{
+  
+  switch(keyCode)
+  {
+    case UP:
+      pjDir[1] = -1;
+      break;
+    case DOWN:
+      pjDir[1] = 1;
+      break;
+    case LEFT:
+      pjDir[0] = -1;
+      break;
+    case RIGHT:
+      pjDir[0] = 1;
+      break;
+    default:
+      pjDir[0] = 0;
+      pjDir[1] = 0;
+    
+  }
+  
+  println(pjDir[0], pjDir[1]);
+
+}
+
 float checkDist(float x1, float y1, float x2, float y2)
 {
   return (new PVector (x1 - x2, y1 - y2).mag()); 
 }
 
 
-void input()
-{
-  PFont font = createFont("arial",20); //Variable que indica la font que volem fer servir(Arial, mida 20) pels components d'aquesta llibreria
-  cp5 = new ControlP5(this);
+
+//void input()
+//{
+//  PFont font = createFont("arial",20); //Variable que indica la font que volem fer servir(Arial, mida 20) pels components d'aquesta llibreria
+//  cp5 = new ControlP5(this);
   
-  //Butons per escollir el tipu de controls que es faran servir per la partida
-  cp5.addRadioButton("controlType") //Creació d'element per escollir el tipu de controls pel joc
-   .setFont(font) //Seteja la font que hem posat en variable anteriorment perque aquest component la faci servir(Arial, 20)
-   .setPosition(200,200) //posicio dins la pantalla del component
-   .setItemWidth(50) //Width dels butons que es defineixen seguidament
-   .setItemHeight(40) //Height dels butons que es defineixen seguidament
-   .addItem("Ratolí", 0) //Creador d'un botó "Ratolí" que definim com a 0
-   .addItem("Teclat", 1) //Creador d'un botó "Teclat" que definim com a 1 (1 i 0 funcionen com un true / false.)
-   .activate(0) //Element que seteja des del principi una de les dos opcions(en aquest cas la del ratolí)
-   ;
+//  //Butons per escollir el tipu de controls que es faran servir per la partida
+//  cp5.addRadioButton("controlType") //Creació d'element per escollir el tipu de controls pel joc
+//   .setFont(font) //Seteja la font que hem posat en variable anteriorment perque aquest component la faci servir(Arial, 20)
+//   .setPosition(200,200) //posicio dins la pantalla del component
+//   .setItemWidth(50) //Width dels butons que es defineixen seguidament
+//   .setItemHeight(40) //Height dels butons que es defineixen seguidament
+//   .addItem("Ratolí", 0) //Creador d'un botó "Ratolí" que definim com a 0
+//   .addItem("Teclat", 1) //Creador d'un botó "Teclat" que definim com a 1 (1 i 0 funcionen com un true / false.)
+//   .activate(0) //Element que seteja des del principi una de les dos opcions(en aquest cas la del ratolí)
+//   ;
   
-  //Input Nombre Enemics
-  cp5.addTextfield("Introdueix el Nombre d'Enemics")
-   .setFont(font) 
-   .setPosition(200,300) 
-   .setSize(350,35) //Mides del component
-   .setText("13") //Text que es seteja ja escrit dins del component al principi
-   ;
+//  //Input Nombre Enemics
+//  cp5.addTextfield("Introdueix el Nombre d'Enemics")
+//   .setFont(font) 
+//   .setPosition(200,300) 
+//   .setSize(350,35) //Mides del component
+//   .setText("13") //Text que es seteja ja escrit dins del component al principi
+//   ;
    
-   //Butó per canviar de fase/fer enter de les opcions escollides per poder jugar al joc
-   cp5.addBang("START GAME")
-    .setFont(font) 
-    .setPosition(270,400)
-    .setSize(200,55)
-    ;
-}
+//   //Butó per canviar de fase/fer enter de les opcions escollides per poder jugar al joc
+//   cp5.addBang("START GAME")
+//    .setFont(font) 
+//    .setPosition(270,400)
+//    .setSize(200,55)
+//    ;
+//}
