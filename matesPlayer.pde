@@ -5,75 +5,75 @@ import controlP5.*;
 int damageTime;
 
 //player
-float pjX;
-float pjY;
-float pjSpeed;
-float pjSize;
-PVector pjV;
-int pjHp;
-int[] pjDir = new int[2];
-boolean checkColosions;
-boolean timeDmg;
-int score;
+float pjX;//posicio X del player
+float pjY;//posicio Y del player
+float pjSpeed;//velocitat del player
+float pjSize;//tamany del player
+PVector pjV;//vector que utilitzem per moure el player
+int pjHp;// vida del player
+int[] pjDir = new int[2]; //array dints que serveix per fer controls amb teclats
+boolean checkColosions;// booleana per saber quan mirar certes collisions
+boolean timeDmg;// boleana per saber si el jugador ha rebut el mal per temps
+int score;// puntuacio del player
 
 //pnjs (aliats)
-float[] pnjX = new float [2];
-float[] pnjY = new float [2];
-float[] pnjS = new float [2];
-int[] dist = new int [2];
-PVector[] pnjV = new PVector [2];
-int pnj2Hp;
-int pnjInvul;
-int pnjInvulCounter;
+float[] pnjX = new float [2];//posicio X dels pnjs
+float[] pnjY = new float [2];//posicio Y dels pnjs
+float[] pnjS = new float [2];//velocitat dels pnjs
+int[] dist = new int [2];// distancia a la que es queden del player
+PVector[] pnjV = new PVector [2];// vector que fem servir per moure els pnjs
+int pnj2Hp;//hp del pnj2
+int pnjInvul;//int que senyala el temps que no rebra mal el pnj2 no revi mal
+int pnjInvulCounter;// conta
 
 //power ups
-float[] powUpX = new float [3];
-float[] powUpY = new float [3];
+float[] powUpX = new float [3];//posicio x dels power ups
+float[] powUpY = new float [3];//posicio y dels power ups
 boolean[] powUpGet = new boolean [3];
 int powUpGot; //int que cuenta los power ups conseguidos para saber cuando spawnear el portal
 boolean powers; //bool para spawnear los powerups/downs
 boolean powsSpawned; //bool para ver si ya han spawneado los powerUps/Downs
 
 //power downs
-float[] powDownX = new float [3];
-float[] powDownY = new float [3];
+float[] powDownX = new float [3];//posicio x dels power downs
+float[] powDownY = new float [3];//posicio y dels power downs
 boolean[] powDownGet = new boolean [3];
 
 //PNJS N (enemics)
-int n;
-float[] x_pnj; 
-float[] y_pnj;
-float[] alfa; 
-boolean[] isDead;
+int n;//nombre denemics
+float[] x_pnj; //array de posicions x dels enemics
+float[] y_pnj;//array de posicions y dels enemics
+float[] alfa; //"velocitat" dels enemics, mes especificament la quantitat de "pasos que han de fer per arribar al player"
+boolean[] isDead;//booleana per comprobar si un enemic esta mort
 
 int counterNSpawning = second(), startN = second();
 int m = 0;
 
 //boss 
-int bossHp;
-float bossX;
-float bossY;
-float bossSpeed;
-float bossSize;
-PVector bossV;
-int bossInvul;
-int bossInvulCounter;
+int bossHp;//vida del boss
+float bossX;//posicio x del boss
+float bossY;//posicio y del boss
+float bossSpeed;//velocitat del boss
+float bossSize;// tamany del boss
+PVector bossV;// vector per moure el boss
+int bossInvul;// mateixa utilitat que amb el pnj2
+int bossInvulCounter;// mateixa utilitat que amb el pnj2
 
-boolean followBoss;
+boolean followBoss;// booleana per saber com ha d'actuar el pnj1 amb el boss
 
 //obstacles
 
-float[] obsX = new float [6];
-float[] obsY = new float [6];
-float obsSize;
+float[] obsX = new float [6];//array de posicions x dels obstacles
+float[] obsY = new float [6];//array de posicions y dels obstacles
+float obsSize;// tamany dels obstacles
 
-enum Scene{MENU, GAMEPLAY, BOSS, GAMEOVER}
+enum Scene{MENU, GAMEPLAY, BOSS, GAMEOVER}// enum que ens deixa saber a quina escena estem
 Scene actualScene;
 
-enum movementOptions{MOUSE, KEYS}
+enum movementOptions{MOUSE, KEYS}// enum que ens deixa saber quins controls utilitza el jugador
 movementOptions movOptions;
 
-enum gameOverState{WIN, LOSE}
+enum gameOverState{WIN, LOSE}// enum que ens deixa saber si el jugador ha perdut o guanyat
 gameOverState gameOver;
 
 //ControlP5 input
@@ -93,12 +93,8 @@ void setup()
   rectMode(CENTER);
   
   actualScene = Scene.MENU;
-  
-  movOptions = movementOptions.MOUSE;
-  
+  //asegurarnos de que la booleana te un valro per que no causi errors
   checkColosions = false;
-  
-  //powerUps spawn
   
 }
 
@@ -148,34 +144,35 @@ void draw()
       break;
     case GAMEPLAY:
       
+      Score();
+      
       //player mov
-  
       if (movOptions == movementOptions.KEYS)
       {
-        
-        pjV = new PVector (pjDir[0], pjDir[1]);
-        normalizePV(pjV);
-        setMagnitude(pjV, pjSpeed);
-        pjX += pjV.x;
-        pjY += pjV.y;
+        //moviment amb teclat        
+        pjV = new PVector (pjDir[0], pjDir[1]); //creem un nou vector 2D amb les direccions X e Y del player
+        normalizePV(pjV);//normalitzem el vector per que no vagi mes rapid en diagonal
+        setMagnitude(pjV, pjSpeed);//actualitzem la magnitud del vector a la velocitat desitjada
+        pjX += pjV.x;//movem la x del player
+        pjY += pjV.y;//movem la y del player
         
       }
       else
       {
-        
-        pjV = new PVector (mouseX - pjX, mouseY - pjY);
+        //moviment amb ratoli
+        pjV = new PVector (mouseX - pjX, mouseY - pjY);//creem un vector 2d amb el player y el ratoli
         normalizePV(pjV);
         setMagnitude(pjV, pjSpeed);
         pjX += pjV.x;
         pjY += pjV.y;
       }   
       
-      checkPlayerColl();
-      checkPnj1Coll();
-      checkPnj2Coll();
+      checkPlayerColl();//mirem colisions del player amb obstacles
+      checkPnj1Coll();//mirem colisions del pnj1 amb obstacles
+      checkPnj2Coll();//mirem colisions del pnj2 amb obstacles
       
       //check if pnj2 picked
-      if (checkDist(pjX, pjY, pnjX[1], pnjY[1]) < 50) //check sense .mag
+      if (checkDist(pjX, pjY, pnjX[1], pnjY[1]) < 50) //check sense 
       {
         //ahora te sigue
         pnjS[1] = 3;
@@ -189,14 +186,13 @@ void draw()
           {
             boolean canSpawn = false;
             
-            while(!canSpawn)// con este bucle nos aseguramos de que no spawneen encima del jugador, por lo tanto coleccionandolos automaticamente.
+            while(!canSpawn)// con este bucle nos aseguramos de que no spawneen encima del jugador y de los obstaculos, por lo tanto coleccionandolos automaticamente.
             {
+              powUpX[i] = random(50, 750);
+              powUpY[i] = random(50, 750);
               for(int j  = 0; j < 6; j++)
               {
-                powUpX[i] = random(50, 750);
-                powUpY[i] = random(50, 750);
-              
-                if (checkDist(pjX, pjY, powUpX[i], powUpY[i]) > width/20 && checkDist(obsX[j], obsY[j], powUpX[i], powUpY[i]) > obsSize)
+                if (checkDist(pjX, pjY, powUpX[i], powUpY[i]) > width/20 && checkDist(obsX[j], obsY[j], powUpX[i], powUpY[i]) > (obsSize + width/5))
                 {
                   canSpawn = true;
                 }
@@ -210,14 +206,13 @@ void draw()
           {
             boolean canSpawn = false;
             
-            while(!canSpawn)
+            while(!canSpawn) //con este bucle nos aseguramos de que no spawneen encima del jugador y de los obstaculos, por lo tanto coleccionandolos automaticamente.
             {
+              powDownX[i] = random(50, 750);
+              powDownY[i] = random(50, 750);
               for(int j  = 0; j < 6; j++)
               {
-                powDownX[i] = random(50, 750);
-                powDownY[i] = random(50, 750);
-              
-                if (checkDist(pjX, pjY, powDownX[i], powDownY[i]) > width/20 && checkDist(obsX[j], obsY[j], powDownX[i], powDownY[i]) > obsSize)
+                if (checkDist(pjX, pjY, powDownX[i], powDownY[i]) > width/20 && checkDist(obsX[j], obsY[j], powDownX[i], powDownY[i]) > (obsSize + width/5))
                 {
                   canSpawn = true;
                 }
@@ -232,8 +227,7 @@ void draw()
       
       //CALC
       
-      
-      //pnj1 calc
+      //pnj1 movment
       if (checkDist(pjX, pjY, pnjX[0], pnjY[0]) > dist[0])
       {
         pnjV[0] = new PVector (pjX - pnjX[0], pjY - pnjY[0]);
@@ -256,7 +250,7 @@ void draw()
         }
       }
       
-      //pnj2 calc
+      //pnj2 movement
       if (checkDist(pjX, pjY, pnjX[1], pnjY[1]) > dist[1])
       {
         pnjV[1] = new PVector (pjX - pnjX[1], pjY - pnjY[1]);
@@ -337,6 +331,7 @@ void draw()
         }
       }
       
+      //mirem si el jugador esta aprop del portal y la condicio per que apareixi el mateix y inicialitzem el boss
       if (powUpGot == 3 && checkDist(width/2, height/2, pjX, pjY) < 131)
         {
           //boss setup
@@ -352,7 +347,7 @@ void draw()
           actualScene = Scene.BOSS;
         }
       
-      if (checkColosions)
+      if (checkColosions)//collisions amb els powerUps/Downs utilitzant distancies
       {
         
           for (int i = 0; i < 3; i++)
@@ -363,6 +358,7 @@ void draw()
             {
               powUpGet[i] = true;
               powUpGot++;
+              score++;
               
               switch(i)
               {
@@ -451,7 +447,7 @@ void draw()
         }
       }
     
-     //Draw els enemics
+     //Render enemics
      if (m > 0)
      {
        for (int i = 0; i < m; i++)
@@ -480,6 +476,7 @@ void draw()
        }
      }
      
+     //Render del portal
      if (powUpGot == 3)
      {
        fill(255, 0, 255);
@@ -538,7 +535,7 @@ void draw()
             pnjY[1] += pnjV[1].y;
           }
           
-          if(followBoss)
+          if(followBoss)//aqui el pnj1 varia entre aproparse al boss y al player
           {
             pnjV[0] = new PVector (bossX - pnjX[0], bossY - pnjY[0]);
             normalizePV(pnjV[0]);
@@ -721,8 +718,9 @@ void mouseMoved()
     {
       if (checkDist(pjX, pjY, powUpX[i], powUpY[i]) < pjSize)
       {
-        powUpGet[i] = true;
+         powUpGet[i] = true;
          powUpGot++;
+         score++;
         
         switch(i)
         {
@@ -817,7 +815,7 @@ void keyReleased()
 
 float checkDist(float x1, float y1, float x2, float y2)
 {
-  return getMagnitude(new PVector (x1 - x2, y1 - y2)); 
+  return getMagnitude(new PVector (x1 - x2, y1 - y2)); //mirem distancia entre dos posicions
 }
 
 void input()
@@ -931,6 +929,8 @@ void powUpDownInizilize()
     powsSpawned = false;
     powUpGot = 0;
     
+    
+    //movem els powerUps/Downs per que quan tornis a comencar la prtida no els agafis sense poderlso veure
     for (int i = 0; i < 3; i++)
     {
       powUpX[i] = 1000000;
@@ -971,8 +971,24 @@ void obsInizilize()
   
   for (int i = 0; i < 6; i++)
   {
-    obsX[i] = random(50, 750);
-    obsY[i] = random(50, 750);
+    
+    boolean canSpawn = false;
+            
+            while(!canSpawn)
+            {
+              for(int j  = 0; j < 6; j++)
+              {
+                obsX[i] = random(50, 750);
+                obsY[i] = random(50, 750);
+              
+                if (checkDist(pjX, pjY, obsX[i], obsY[i]) > obsSize && checkDist(obsX[j], obsY[j], pnjX[1], pnjY[1]) > (obsSize + width/10))
+                {
+                  canSpawn = true;
+                }
+              }
+            }
+    
+    
   }
   
 }
@@ -1019,7 +1035,7 @@ void checkPlayerColl()
   float objT = pjY - pjSize/2;
   float objB = pjY + pjSize/2;
  
-  for(int i = 0; i < 6; i++)
+  for(int i = 0; i < 6; i++)//bucle per comprobar colisions amb cada un dels obstacles
   {
       //calc obstacle limits
       float obsL = obsX[i] - obsSize/2;
@@ -1030,6 +1046,7 @@ void checkPlayerColl()
       // collision logic
       if(objR >obsL && objL < obsR && objB > obsT && objT < obsB) 
       {
+          //moviment cap a fora del obstacle
           pjV = new PVector (obsX[i] - pjX, obsY[i] - pjY);
           normalizePV(pjV);
           setMagnitude(pjV, pjSpeed);
@@ -1144,7 +1161,7 @@ void finalInput()
 void Score()
 {
   PFont font = createFont("arial",20);  
-  fill(255);
+  fill(0, 0, 255);
   textFont(font);
   text("Score:",50,50);
 
