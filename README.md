@@ -1,10 +1,10 @@
 # proj1_mates
 
-Integrants del grup: Marti Oliveras Planas i Joel Cruz Quevedo
+Integrants del grup: Martí Oliveras Planas i Joel Cruz Quevedo
 
 
 Explicació del Joc:
-Aquest joc tracta d'aconseguir tots els power ups necessaris
+Aquest joc tracta d'aconseguir tots els power ups necessaris mentre protegeixes les teves mascotes dels enemics i, un cop aconseguits, entrar al portal per poder derrotar el boss final amb l’ajuda d’una de les mascotes i aconseguir el màxim de puntuació. Les decisions més importants que hem pres a l'hora de fer el treball han estat l’ús de la llibreria per fer servir tota mena de botons textos i inputs, ja que tot i que hem hagut d’aprendre com funciona des de zero, un cop l’hem après a fer servir ens ha facilitat la feina de diverses parts de la pràctica. També aquesta decisió comporta al fet que el joc tingui aquest aspecte visual del qual podríem indicar com la seva UI, però com que no feia falta que fos atractiu visualment estem satisfets en com ha quedat. Altres decisions que hem pres serien el sistema de punts el qual hem fet bastant simple per no haver de dedicar-hi massa estona i centrar-nos més en el sistema de vides, ja que se’n demanava un més complex. Finalment, l’última decisió important del nostre joc es la bossfight, la qual hem volgut fer que funcioni de manera que l’ataques com a jugador amb una de les mascotes (la que no té vida) per donar-li més impacte a aquesta en el joc i perquè ens ha semblat una manera original i divertida de fer la batalla final.
 
 
 Instruccions per jugar:
