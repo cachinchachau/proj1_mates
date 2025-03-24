@@ -36,11 +36,11 @@ float[] powDownY = new float [3];
 boolean[] powDownGet = new boolean [3];
 
 //PNJS N (enemics)
-int n = 5;
-float[] x_pnj = new float[n]; //5 momentani, s'ha de fer lo de input nº enemics
-float[] y_pnj = new float[n]; //5 momentani, s'ha de fer lo de input nº enemics
-float[] alfa = new float[n]; //5 momentani, s'ha de fer lo de input nº enemics
-boolean[] isDead = new boolean[n];
+int n;
+float[] x_pnj; 
+float[] y_pnj;
+float[] alfa; 
+boolean[] isDead;
 
 int counterNSpawning = second(), startN = second();
 int m = 0;
@@ -53,6 +53,7 @@ movementOptions movOptions;
 
 //ControlP5 input
 ControlP5 cp5;
+boolean startPressed;
 
 
 //Set-Up
@@ -64,7 +65,7 @@ void setup()
   //asegurarnos de que cuadrados/rectangulos aparecen al centro de las coordenadas
   rectMode(CENTER);
   
-  actualScene = Scene.GAMEPLAY;
+  actualScene = Scene.MENU;
   
   movOptions = movementOptions.KEYS;
   
@@ -121,51 +122,8 @@ void setup()
     powDownGet[i] = false;
   }
   
-  //Bucle per decidir a quina punta del mapa els enemics fan spawn
-  for (int i = 0; i < n; i++)
-  {
-    int a = (int)random(1,4); //Random int per poder fer servir el switch i assignar el valor a les coordennades X i Y de cada enemic de forma random
-    
-    switch(a)
-    {
-      case 1:
-      x_pnj[i] = 0;
-      y_pnj[i] = 0;
-      break;
-      case 2:
-      x_pnj[i] = 0;
-      y_pnj[i] = height;
-      break;
-      case 3: 
-      x_pnj[i] = width;
-      y_pnj[i] = 0;
-      break;
-      case 4: 
-      x_pnj[i] = width;
-      y_pnj[i] = height;
-      break;
-    }
-  }
-  
-  for (int i = 0; i < n; i ++)
-  {
-    isDead[i] = false;
-  }
-  
-  for (int i = 0; i < n; i++)
-  {
-    if (i < n/2)
-    {
-      alfa[i] = random(-0.01f,-0.02f); 
-    }
-    else
-    {
-      alfa[i] = random(0.008f,0.002f); 
-    }
-  }  
-
-  //input(); //funcio inputs
-
+ 
+  input(); //funcio inputs
 }
 
 
@@ -179,7 +137,14 @@ void draw()
   switch (actualScene)
   {
     case MENU:
-      
+      n = int(cp5.get(Textfield.class,"Introdueix el Nombre Enemics").getText());
+      if (startPressed)
+      {
+        inputsOff();
+        startPressed = false;
+        menuDone();
+        actualScene = Scene.GAMEPLAY;
+      }
       break;
     case GAMEPLAY:
       //player mov
@@ -200,7 +165,6 @@ void draw()
         pjV = pjV.normalize().setMag(pjSpeed); //fer calcs sense .normalize y .setMag
         pjX += pjV.x;
         pjY += pjV.y;
-        
       }   
       
       //check if pnj2 picked
@@ -657,36 +621,101 @@ float checkDist(float x1, float y1, float x2, float y2)
   return (new PVector (x1 - x2, y1 - y2).mag()); 
 }
 
-
-
-//void input()
-//{
-//  PFont font = createFont("arial",20); //Variable que indica la font que volem fer servir(Arial, mida 20) pels components d'aquesta llibreria
-//  cp5 = new ControlP5(this);
+void input()
+{
+  PFont font = createFont("arial",20); //Variable que indica la font que volem fer servir(Arial, mida 20) pels components d'aquesta llibreria
+  cp5 = new ControlP5(this);
   
-//  //Butons per escollir el tipu de controls que es faran servir per la partida
-//  cp5.addRadioButton("controlType") //Creació d'element per escollir el tipu de controls pel joc
-//   .setFont(font) //Seteja la font que hem posat en variable anteriorment perque aquest component la faci servir(Arial, 20)
-//   .setPosition(200,200) //posicio dins la pantalla del component
-//   .setItemWidth(50) //Width dels butons que es defineixen seguidament
-//   .setItemHeight(40) //Height dels butons que es defineixen seguidament
-//   .addItem("Ratolí", 0) //Creador d'un botó "Ratolí" que definim com a 0
-//   .addItem("Teclat", 1) //Creador d'un botó "Teclat" que definim com a 1 (1 i 0 funcionen com un true / false.)
-//   .activate(0) //Element que seteja des del principi una de les dos opcions(en aquest cas la del ratolí)
-//   ;
+  //Butons per escollir el tipu de controls que es faran servir per la partida
+  cp5.addRadioButton("controlType") //Creació d'element per escollir el tipu de controls pel joc
+   .setFont(font) //Seteja la font que hem posat en variable anteriorment perque aquest component la faci servir(Arial, 20)
+   .setPosition(200,200) //posicio dins la pantalla del component
+   .setItemWidth(50) //Width dels butons que es defineixen seguidament
+   .setItemHeight(40) //Height dels butons que es defineixen seguidament
+   .addItem("Ratoli", 0) //Creador d'un botó "Ratolí" que definim com a 0
+   .addItem("Teclat", 1) //Creador d'un botó "Teclat" que definim com a 1 (1 i 0 funcionen com un true / false.)
+   .activate(0) //Element que seteja des del principi una de les dos opcions(en aquest cas la del ratolí)
+   ;
   
-//  //Input Nombre Enemics
-//  cp5.addTextfield("Introdueix el Nombre d'Enemics")
-//   .setFont(font) 
-//   .setPosition(200,300) 
-//   .setSize(350,35) //Mides del component
-//   .setText("13") //Text que es seteja ja escrit dins del component al principi
-//   ;
+  //Input Nombre Enemics
+  cp5.addTextfield("Introdueix el Nombre Enemics")
+   .setFont(font) 
+   .setPosition(200,300) 
+   .setSize(350,35) //Mides del component
+   .setText("13") //Text que es seteja ja escrit dins del component al principi
+   ;
    
-//   //Butó per canviar de fase/fer enter de les opcions escollides per poder jugar al joc
-//   cp5.addBang("START GAME")
-//    .setFont(font) 
-//    .setPosition(270,400)
-//    .setSize(200,55)
-//    ;
-//}
+   //Butó per canviar de fase/fer enter de les opcions escollides per poder jugar al joc
+   cp5.addBang("Startgame")
+    .setFont(font) 
+    .setPosition(270,400)
+    .setSize(200,55)
+    ;
+}
+
+
+void menuDone()
+{
+  x_pnj = new float[n];
+  y_pnj = new float[n];
+  alfa = new float[n];
+  isDead = new boolean[n];
+  
+  //Bucle per decidir a quina punta del mapa els enemics fan spawn
+  for (int i = 0; i < n; i++)
+  {
+    int a = (int)random(1,4); //Random int per poder fer servir el switch i assignar el valor a les coordennades X i Y de cada enemic de forma random
+    
+    switch(a)
+    {
+      case 1:
+      x_pnj[i] = 0;
+      y_pnj[i] = 0;
+      break;
+      case 2:
+      x_pnj[i] = 0;
+      y_pnj[i] = height;
+      break;
+      case 3: 
+      x_pnj[i] = width;
+      y_pnj[i] = 0;
+      break;
+      case 4: 
+      x_pnj[i] = width;
+      y_pnj[i] = height;
+      break;
+    }
+  }
+  
+  for (int i = 0; i < n; i ++)
+  {
+    isDead[i] = false;
+  }
+  
+  for (int i = 0; i < n; i++)
+  {
+    if (i < n/2)
+    {
+      alfa[i] = random(-0.01f,-0.02f); 
+    }
+    else
+    {
+      alfa[i] = random(0.008f,0.002f); 
+    }
+  } 
+}
+
+
+
+
+void Startgame()
+{
+  startPressed = true;
+}
+
+void inputsOff()
+{
+  cp5.remove("controlType"); //Aquesta funció de la llibreria serveix per eliminar els components que hem fet servir pels inputs
+  cp5.remove("Introdueix el Nombre Enemics"); 
+  cp5.remove("Startgame");
+}
