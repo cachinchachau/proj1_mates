@@ -462,6 +462,9 @@ void draw()
       {
         fill(0, 255, 0);
         square(width/1.5 + i*width/15, 50,  width/25);
+        PFont font = createFont("arial",20);
+        textFont(font);
+        text("Vides:",(width/1.5 + width/15)-80, 60);
       }
           break;
         case BOSS:
@@ -613,6 +616,9 @@ void draw()
          {
            fill(0, 255, 0);
            square(width/1.5 + i*width/15, 50,  width/25);
+           PFont font = createFont("arial",20);
+           textFont(font);
+           text("Vides:",(width/1.5 + width/15)-80, 60);
          }
           
           break;
