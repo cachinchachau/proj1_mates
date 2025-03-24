@@ -1,8 +1,8 @@
 //Pràctica AA1
-//Variables
-import controlP5.*;
+import controlP5.*; //Import de la llibreria controlP5 per poder-la fer servir
 
-int damageTime;
+//Variables
+int damageTime; //Variable per contabilitzar temps 
 
 //player
 float pjX;//posicio X del player
@@ -46,9 +46,9 @@ float[] y_pnj;//array de posicions y dels enemics
 float[] alfa; //"velocitat" dels enemics, mes especificament la quantitat de "pasos que han de fer per arribar al player"
 boolean[] isDead;//booleana per comprobar si un enemic esta mort
 
-//Variables fetes
-int counterNSpawning = second(), startN = second();
-int m = 0;
+//Variables spawn enemics
+int counterNSpawning = second(), startN = second(); //Contadors de segons per veure la diferencia de temps en la que spawnejar els enemics
+int m; //Variable auxiliar per fer de contador
 
 //boss 
 int bossHp;//vida del boss
@@ -79,9 +79,9 @@ gameOverState gameOver;
 
 //ControlP5 input
 ControlP5 cp5;
-boolean startPressed;
-boolean inputsOn = true;
-boolean tryAgain = false;
+boolean startPressed; //Boleana per quan es cliqui el botó per començar el joc
+boolean inputsOn = true; //Boleana perque no es repeteixin els efectes de quan es clica un botó
+boolean tryAgain = false; //Boleana pel botó de tornar a jugar
 
 
 //Set-Up
@@ -105,21 +105,21 @@ void setup()
 void draw()
 {
   
-  background(0, 0, 0);
+  background(0); //fons de la pantalla negre
   
-  switch (actualScene)
+  switch (actualScene) //Switch per les escenes
   {
     case MENU:
-      if (inputsOn)
+      if (inputsOn) //Aquest if serveix perquè els butons i input només es creiin una vegada
       {
         input(); //funcio inputs
         inputsOn = false;
       }
       
-       n = int(cp5.get(Textfield.class,"Introdueix el Nombre Enemics").getText());
+       n = int(cp5.get(Textfield.class,"Introdueix el Nombre Enemics").getText()); //Aquesta funció de la llibreria es per guardar dins la variable de n en forma de int el nombre que s'introdueixi a l'input
       
-      switch(int(cp5.get(RadioButton.class,"controlType").getValue()))
-      {
+      switch(int(cp5.get(RadioButton.class,"controlType").getValue())) //Variació de la funció anterior que serveix per decidir quin botó el jugador a clicat (teclat o ratolí)
+      { //En aquest cas el switch serveix per setejar el moviment en ratolí o teclar depenent del botó que estigui clicat
         case 0:
           movOptions = movementOptions.MOUSE;
           break;
@@ -127,26 +127,28 @@ void draw()
           movOptions = movementOptions.KEYS;
           break;
       }
-      if (startPressed)
+      if (startPressed) //un cop es premi el botó de començar la partida
       {
-        inputsOff();
-        startPressed = false;
-        score = 0;
-        menuDone();
+        inputsOff(); //Es borren tant els botons com l'input perque no es quedin alla al mig de l'escena
+        startPressed = false; // es torna a posar a fals la variable pel tema rejugabilitat
+        score = 0; //score es seteha a 0 pel tema rejugabilitat
+        m = 0; //m es seteja a 0 pel tema rejugabilitat
+        menuDone(); //Es criden totes les funcions que serveixen per inicialitzar les variables, ja que al ser un joc que es pot tornar a jugar no es poden inicialitzar al setup perquè sino nomes ho faran al princii de la primera partida
         pjInizilize();
         pnjInizilize();
         obsInizilize();
         powUpDownInizilize();
-        actualScene = Scene.GAMEPLAY;
+        actualScene = Scene.GAMEPLAY; //es canvia d'escena
         damageTime = 1000*30 + millis();
         timeDmg = false;
+        
         
         
       }
       break;
     case GAMEPLAY:
       
-      Score();
+      Score(); //Es crida la funcio perque es vegi la puntuacio a la pantalla
       
       //player mov
       if (movOptions == movementOptions.KEYS)
@@ -285,14 +287,14 @@ void draw()
         }
       }
       
-      if (pjHp == 0)
+      if (pjHp == 0) //Si la vida del jugador arriba a 0
       {
-        actualScene = Scene.GAMEOVER;
-        gameOver = gameOverState.LOSE;
-        inputsOn = true;
+        actualScene = Scene.GAMEOVER; //Es passa a l'escena de game over
+        gameOver = gameOverState.LOSE; //Es dona la partida com a perduda
+        inputsOn = true; //Es posa en true aquesta boleana perque el botó de tornar a jugar es pugui imprimir a la pantalla
       }
       
-      for (int i = 0; i < m; i++)
+      for (int i = 0; i < n; i++) //for per comprovar si cada un dels enemics esta tocant el player i si es aixi matar-los i sumar-li puntuació al jugador 
       {
         if(!isDead[i] && checkDist(pjX,pjY,x_pnj[i],y_pnj[i]) < pjSize/1.25)
         {
@@ -301,12 +303,12 @@ void draw()
         }
       }
       
-      // p(alfa) = PNJ + alfa * PJ --> p(alfa) = (1-alfa) * PNJ + alfa * PJ
-      for(int i = 0; i < m/2; i++)
+      // p(alfa) = PNJ + alfa * PJ --> p(alfa) = (1-alfa) * PNJ + alfa * PJ. Gracies a aquesta formula els enemics es mouen mes rapid o mes lent depenent de la seva distància envers al player o les mascotes
+      for(int i = 0; i < m/2; i++) //Aquest for serveix perque els enemics es moguin com demana la pratica
       {
-        if (!isDead[i] &&checkDist(pjX,pjY,x_pnj[i],y_pnj[i]) >= width/2)
+        if (!isDead[i] &&checkDist(pjX,pjY,x_pnj[i],y_pnj[i]) >= width/3) //La meitat dels enemics fugirà del player a certa distancia (un treç de l'amplada de la pantalla)
         {
-          x_pnj[i] = (1.0 - (-alfa[i])) * x_pnj[i] + (-alfa[i]) * pjX;
+          x_pnj[i] = (1.0 - (-alfa[i])) * x_pnj[i] + (-alfa[i]) * pjX; //Versió canviada de la fòrmula peruqè els enemics fugeixin en comptes de perseguir i aixo sigui del player
           y_pnj[i] = (1.0 - (-alfa[i])) * y_pnj[i] + (-alfa[i]) * pjY; 
         }
         else if(!isDead[i])
@@ -315,7 +317,7 @@ void draw()
           y_pnj[i] = (1.0 - alfa[i]) * y_pnj[i] + alfa[i] * pjY; 
         }
       }
-        for(int i = m/2; i < m/4 + m/2; i++)
+        for(int i = m/2; i < m/4 + m/2; i++) //Un quart dels enemics perseguirà a una de les mascotes 
       {
         if (!isDead[i])
         {
@@ -324,7 +326,7 @@ void draw()
         }
      
       }
-        for(int i = m/2+m/4; i < m; i++)
+        for(int i = m/2+m/4; i < m; i++) //L'altre quart dels enemics perseguirà a l'altre mascota
       {
         if (!isDead[i])
         {
@@ -485,7 +487,7 @@ void draw()
        ellipse(width/2, height/2, width/4, height/4);
      }
      
-      EnemySpawner();
+      EnemySpawner(); //Funcio que spawneja els enemics un per un
       
       rectMode(CORNER);
       fill(255, 0, 0);
@@ -660,18 +662,18 @@ void draw()
          }
           
           break;
-        case GAMEOVER:
-          Score();
-          if (gameOver == gameOverState.LOSE)
+        case GAMEOVER: //Escena final del joc
+          Score(); //Es crida la funció perquè es mostri la puntuació final del jugador
+          if (gameOver == gameOverState.LOSE) //if que depen de si el juador ha guanyat o ha perdut
           {
             PFont font = createFont("arial",40);
             fill(255);
             textFont(font);
-            text( "Game Over",width/3, height/3);
-            if(inputsOn)
+            text( "Game Over",width/3, height/3); //Text per si ha perdut la partida
+            if(inputsOn) //Si s'activa el botó per tornar a jugar
             {
-              finalInput();
-              inputsOn = false;
+              finalInput(); //Es crida la funció finalInput
+              inputsOn = false; //Es torna la veriable d'activar botons a fals
             }
           }
           else
@@ -679,8 +681,8 @@ void draw()
             PFont font = createFont("arial",40);
             fill(255);
             textFont(font);
-            text("You Won!!! Thanks For Playing!",width/6, height/3);
-            if(inputsOn)
+            text("You Won!!! Thanks For Playing!",width/6, height/3); //Text per si ha guanyat la partida
+            if(inputsOn) //Si s'activa el botó per tornar a jugar
             {
               finalInput();
               inputsOn = false;
@@ -690,7 +692,7 @@ void draw()
           
       }
       
-      if (millis() >= damageTime && !timeDmg)
+      if (millis() >= damageTime && !timeDmg) //Aquest if serveix per detectar si el jugador porta massa temps sense guanyar o perdre (30 sec) i si es aixi restar-li una vida
       {
         pjHp -= 1;
         timeDmg = true;
@@ -700,16 +702,16 @@ void draw()
 
 
 //EVENTOS
-void EnemySpawner()
+void EnemySpawner() //Funcio que spawneja un enemic cada dos segons i que deixa de fer-ho un cop hagin spawnejat tots els enemics
 {
-  if (second() >= counterNSpawning+2 && m < n)
+  if (second() >= counterNSpawning+2 && m < n) 
   {
       m++;
       counterNSpawning = second();
   }
 }
 
-void mouseMoved()
+void mouseMoved() //Funcio per quan el jugador es mogui amb el ratolí
 {
   
   //COLLISIONES  
@@ -769,7 +771,7 @@ void mouseMoved()
   
 }
 
-void keyPressed()
+void keyPressed() //Funcio per quan el jugador es mogui amb el teclat i premi una tecla es mogui cap a la seva respectiva direccio
 {
   
   checkColosions = true;
@@ -793,7 +795,7 @@ void keyPressed()
 
 }
 
-void keyReleased()
+void keyReleased() //Funcio per quan el jugador es mogui amb el teclat i deixi de premre una tecla aquest deixi de moures cap a aquella direcció
 {
   
   switch(keyCode)
@@ -875,12 +877,12 @@ void menuDone()
     }
   }
   
-  for (int i = 0; i < n; i ++)
+  for (int i = 0; i < n; i ++) //for que setteja tots els enemics com a vius
   {
     isDead[i] = false;
   }
   
-  for (int i = 0; i < n; i++)
+  for (int i = 0; i < n; i++) //For que fa que la meitat d'enemics tinguin la velocitat negativa(perquè així fugin) i l'altre la velocitat positiva, perque s'apropin. Aixo es perque la meitat dels enemics han de fugir del jugador
   {
     if (i < n/2)
     {
@@ -934,10 +936,10 @@ void pjInizilize()
     pjY = height/2;
 }
 
-void obsInizilize()
+void obsInizilize() //Funcio per inicialitzar les variables dels obstacles, com la mida i la posició
 {
   
-  obsSize = width/8;
+  obsSize = width/16;
   
   for (int i = 0; i < 6; i++)
   {
@@ -951,7 +953,7 @@ void obsInizilize()
                 obsX[i] = random(50, 750);
                 obsY[i] = random(50, 750);
               
-                if (checkDist(pjX, pjY, obsX[i], obsY[i]) > obsSize && checkDist(obsX[j], obsY[j], pnjX[1], pnjY[1]) > (obsSize + width/10))
+                if (checkDist(pjX, pjY, obsX[i], obsY[i]) > obsSize && checkDist(obsX[j], obsY[j], pnjX[1], pnjY[1]) > (obsSize + width/10)) //Mateix que s'usa per els powerups i power downs
                 {
                   canSpawn = true;
                 }
