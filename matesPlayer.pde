@@ -94,7 +94,7 @@ void setup()
   
   actualScene = Scene.MENU;
   
-  movOptions = movementOptions.KEYS;
+  movOptions = movementOptions.MOUSE;
   
   checkColosions = false;
   
@@ -233,6 +233,7 @@ void draw()
         pnjY[0] += pnjV[0].y;
       }
       
+      //pnj1 calc per allunyarse dels enemics
       for (int i = 0; i < m; i++)
       {
         if (checkDist(pnjX[0], pnjY[0], x_pnj[i], y_pnj[i]) < 100)
@@ -257,6 +258,7 @@ void draw()
       
       for (int i = 0; i < m; i++)
       {
+        //codi per que el pnj2 perdi vida al colisionar, amb un counter per que no es mori automaticament, utilitzem la variable booleana invertida isDead per que no tingui en compte els enemic que ja estan morts
         if ( !isDead[i] && checkDist(pnjX[1], pnjY[1], x_pnj[i], y_pnj[i]) < width/25)
         {
           if (pnjInvulCounter < pnjInvul)
@@ -268,7 +270,7 @@ void draw()
             pnjInvulCounter = 0;
             pnj2Hp += 1;
           }
-
+          //fem que la vida del pnj2 vagi cap adalt en comptes de cap avaix per ajudar a la creacio de la UI de la vida
           if (pnj2Hp == 20)
           {
             pnj2Hp = 10;
@@ -322,9 +324,7 @@ void draw()
         }
       }
       
-      if (checkColosions)
-      {
-        if (powUpGot == 3 && checkDist(width/2, height/2, pjX, pjY) < 131)
+      if (powUpGot == 3 && checkDist(width/2, height/2, pjX, pjY) < 131)
         {
           //boss setup
           bossHp = 10;
@@ -336,9 +336,11 @@ void draw()
           bossInvulCounter = 20;
           followBoss = true;
           
-          
           actualScene = Scene.BOSS;
         }
+      
+      if (checkColosions)
+      {
         
           for (int i = 0; i < 3; i++)
         {
@@ -554,7 +556,8 @@ void draw()
           setMagnitude(bossV, bossSpeed);
           bossX -= bossV.x;
           bossY -= bossV.y;
-          
+         
+          //codi per que el pnj2 perdi vida al colisionar, amb un counter per que no es mori automaticament
           if (checkDist(pnjX[1], pnjY[1], bossX, bossY) < bossSize)
           {
             if (pnjInvulCounter < pnjInvul)
@@ -566,7 +569,7 @@ void draw()
               pnjInvulCounter = 0;
               pnj2Hp += 1;
             }
-  
+            //fem que la vida del pnj2 vagi cap adalt en comptes de cap avaix per ajudar a la creacio de la UI de la vida
             if (pnj2Hp == 20)
             {
               pnj2Hp = 10;
@@ -574,6 +577,7 @@ void draw()
             }
           }
           
+          //codi per que el boss perdi vida al colisionar, amb un counter per que no es mori automaticament
           if (checkDist(pjX, pjY, bossX, bossY) < bossSize || checkDist(pnjX[0], pnjY[0], bossX, bossY) < bossSize)
           {
             if (bossInvulCounter < bossInvul)
@@ -585,7 +589,7 @@ void draw()
               bossInvulCounter = 0;
               bossHp += 1;
             }
-  
+            //fem que la vida del boss vagi cap adalt en comptes de cap avaix per ajudar a la creacio de la UI de la vida
             if (bossHp == 20)
             {
               actualScene = Scene.GAMEOVER;
@@ -880,6 +884,7 @@ void menuDone()
 void powUpDownInizilize()
 {
     powsSpawned = false;
+    powUpGot = 0;
     
     for (int i = 0; i < 3; i++)
     {
@@ -963,7 +968,7 @@ void inputsOff()
 
 void checkPlayerColl()
 {
-  // Calcular límites del jugador
+  // calc pj limits
   float objL = pjX - pjSize/2;
   float objR = pjX + pjSize/2;
   float objT = pjY - pjSize/2;
@@ -971,16 +976,15 @@ void checkPlayerColl()
  
   for(int i = 0; i < 6; i++)
   {
-      // Calcular límites del muro
+      //calc obstacle limits
       float obsL = obsX[i] - obsSize/2;
       float obsR = obsX[i] + obsSize/2;
       float obsT = obsY[i] - obsSize/2;
       float obsB = obsY[i] + obsSize/2;
       
-      // Detección AABB correcta
+      // collision logic
       if(objR >obsL && objL < obsR && objB > obsT && objT < obsB) 
       {
-        println("colliding");
           pjV = new PVector (obsX[i] - pjX, obsY[i] - pjY);
           normalizePV(pjV);
           setMagnitude(pjV, pjSpeed);
@@ -993,7 +997,7 @@ void checkPlayerColl()
 
 void checkPnj1Coll()
 {
-  // Calcular límites del jugador
+  //calc pnj1 limits
   float objL = pnjX[0] - pjSize/2;
   float objR = pnjX[0] + pjSize/2;
   float objT = pnjY[0] - pjSize/2;
@@ -1001,16 +1005,15 @@ void checkPnj1Coll()
  
   for(int i = 0; i < 6; i++)
   {
-      // Calcular límites del muro
+      //calc obstacle limits
       float obsL = obsX[i] - obsSize/2;
       float obsR = obsX[i] + obsSize/2;
       float obsT = obsY[i] - obsSize/2;
       float obsB = obsY[i] + obsSize/2;
       
-      // Detección AABB correcta
+      // collision logic
       if(objR >obsL && objL < obsR && objB > obsT && objT < obsB) 
       {
-        println("colliding");
           pnjV[0] = new PVector (obsX[i] - pnjX[0], obsY[i] - pnjY[0]);
           normalizePV(pnjV[0]);
           setMagnitude(pnjV[0], pnjS[0]);
@@ -1023,7 +1026,7 @@ void checkPnj1Coll()
 
 void checkPnj2Coll()
 {
-  // Calcular límites del jugador
+  // calc pnj2 limits
   float objL = pnjX[1] - pjSize/2;
   float objR = pnjX[1] + pjSize/2;
   float objT = pnjY[1] - pjSize/2;
@@ -1031,27 +1034,32 @@ void checkPnj2Coll()
  
   for(int i = 0; i < 6; i++)
   {
-      // Calcular límites del muro
+      //calc obstacle limits
       float obsL = obsX[i] - obsSize/2;
       float obsR = obsX[i] + obsSize/2;
       float obsT = obsY[i] - obsSize/2;
       float obsB = obsY[i] + obsSize/2;
       
-      // Detección AABB correcta
+      // collision logic
       if(objR >obsL && objL < obsR && objB > obsT && objT < obsB) 
       {
-        println("colliding");
           pnjV[1] = new PVector (obsX[i] - pnjX[1], obsY[i] - pnjY[1]);
           normalizePV(pnjV[1]);
           setMagnitude(pnjV[1], pnjS[1]);
           pnjX[1] -= pnjV[1].x;
           pnjY[1] -= pnjV[1].y;
           
-          if (!(pnjInvulCounter < pnjInvul))
+          //codi per que el pnj2 perdi vida al colisionar, amb un counter per que no es mori automaticament
+          if (pnjInvulCounter < pnjInvul)
             {
+              pnjInvulCounter++;
+            }
+            else
+            {
+              pnjInvulCounter = 0;
               pnj2Hp += 1;
             }
-  
+            //fem que la vida del pnj2 vagi cap adalt en comptes de cap avaix per ajudar a la creacio de la UI de la vida
             if (pnj2Hp == 20)
             {
               pnj2Hp = 10;
