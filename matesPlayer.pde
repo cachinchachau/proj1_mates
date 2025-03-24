@@ -66,6 +66,8 @@ movementOptions movOptions;
 enum gameOverState{WIN, LOSE}
 gameOverState gameOver;
 
+PVector testV;
+
 //ControlP5 input
 ControlP5 cp5;
 boolean startPressed;
@@ -118,6 +120,9 @@ void draw()
         pnjInizilize();
         powUpDownInizilize();
         actualScene = Scene.GAMEPLAY;
+        
+
+        
       }
       break;
     case GAMEPLAY:
@@ -128,7 +133,8 @@ void draw()
       {
         
         pjV = new PVector (pjDir[0], pjDir[1]);
-        pjV = pjV.normalize().setMag(pjSpeed);
+        normalizePV(pjV);
+        setMagnitude(pjV, pjSpeed);
         pjX += pjV.x;
         pjY += pjV.y;
         
@@ -137,7 +143,8 @@ void draw()
       {
         
         pjV = new PVector (mouseX - pjX, mouseY - pjY);
-        pjV = pjV.normalize().setMag(pjSpeed); //fer calcs sense .normalize y .setMag
+        normalizePV(pjV);
+        setMagnitude(pjV, pjSpeed);
         pjX += pjV.x;
         pjY += pjV.y;
       }   
@@ -200,7 +207,8 @@ void draw()
       if (checkDist(pjX, pjY, pnjX[0], pnjY[0]) > dist[0])
       {
         pnjV[0] = new PVector (pjX - pnjX[0], pjY - pnjY[0]);
-        pnjV[0] = pnjV[0].normalize().setMag(pnjS[0]); //fer calcs sense .normalize y .setMag
+        normalizePV(pnjV[0]);
+        setMagnitude(pnjV[0], pnjS[0]);
         pnjX[0] += pnjV[0].x;
         pnjY[0] += pnjV[0].y;
       }
@@ -210,7 +218,8 @@ void draw()
         if (checkDist(pnjX[0], pnjY[0], x_pnj[i], y_pnj[i]) < 100)
         {
           pnjV[0] = new PVector (x_pnj[i] - pnjX[0], y_pnj[i] - pnjY[0]);
-          pnjV[0] = pnjV[0].normalize().setMag(2); //fer calcs sense .normalize y .setMag
+          normalizePV(pnjV[0]);
+          setMagnitude(pnjV[0], 2);
           pnjX[0] -= pnjV[0].x;
           pnjY[0] -= pnjV[0].y;
         }
@@ -220,7 +229,8 @@ void draw()
       if (checkDist(pjX, pjY, pnjX[1], pnjY[1]) > dist[1])
       {
         pnjV[1] = new PVector (pjX - pnjX[1], pjY - pnjY[1]);
-        pnjV[1] = pnjV[1].normalize().setMag(pnjS[1]); //fer calcs sense .normalize y .setMag
+        normalizePV(pnjV[1]);
+        setMagnitude(pnjV[1], pnjS[1]);
         pnjX[1] += pnjV[1].x;
         pnjY[1] += pnjV[1].y;
       }
@@ -336,7 +346,7 @@ void draw()
             }
           }
           
-          if (pjV.mag() == 0)
+          if (getMagnitude(pjV) == 0)
           {
             checkColosions = false;
           }
@@ -453,7 +463,8 @@ void draw()
           {
             
             pjV = new PVector (pjDir[0], pjDir[1]);
-            pjV = pjV.normalize().setMag(pjSpeed);
+            normalizePV(pjV);
+            setMagnitude(pjV, pjSpeed);
             pjX += pjV.x;
             pjY += pjV.y;
             
@@ -461,18 +472,18 @@ void draw()
           else
           {
             
-            pjV = new PVector (mouseX - pjX, mouseY - pjY);
-            pjV = pjV.normalize().setMag(pjSpeed); //fer calcs sense .normalize y .setMag
+            pjV = new PVector (pjDir[0], pjDir[1]);
+            normalizePV(pjV);
+            setMagnitude(pjV, pjSpeed);
             pjX += pjV.x;
             pjY += pjV.y;
-            
           }
-          
 
           if (checkDist(pjX, pjY, pnjX[1], pnjY[1]) > dist[1])
           {
             pnjV[1] = new PVector (pjX - pnjX[1], pjY - pnjY[1]);
-            pnjV[1] = pnjV[1].normalize().setMag(pnjS[1]); //fer calcs sense .normalize y .setMag
+            normalizePV(pnjV[1]);
+            setMagnitude(pnjV[1], pnjS[1]);
             pnjX[1] += pnjV[1].x;
             pnjY[1] += pnjV[1].y;
           }
@@ -480,7 +491,8 @@ void draw()
           if(followBoss)
           {
             pnjV[0] = new PVector (bossX - pnjX[0], bossY - pnjY[0]);
-            pnjV[0] = pnjV[0].normalize().setMag(pnjS[0]); //fer calcs sense .normalize y .setMag
+            normalizePV(pnjV[0]);
+            setMagnitude(pnjV[0], pnjS[0]);
             pnjX[0] += pnjV[0].x;
             pnjY[0] += pnjV[0].y;
             
@@ -492,7 +504,8 @@ void draw()
           }else
           {
             pnjV[0] = new PVector (pjX - pnjX[0], pjY - pnjY[0]);
-            pnjV[0] = pnjV[0].normalize().setMag(pnjS[0]); //fer calcs sense .normalize y .setMag
+            normalizePV(pnjV[0]);
+            setMagnitude(pnjV[0], pnjS[0]);
             pnjX[0] += pnjV[0].x;
             pnjY[0] += pnjV[0].y;
             
@@ -505,7 +518,8 @@ void draw()
           
           //boss calc
           bossV = new PVector (bossX - pnjX[1], bossY - pnjY[1]);
-          bossV = bossV.normalize().setMag(bossSpeed); //fer calcs sense .normalize y .setMag
+          normalizePV(bossV);
+          setMagnitude(bossV, bossSpeed);
           bossX -= bossV.x;
           bossY -= bossV.y;
           
@@ -717,7 +731,7 @@ void keyReleased()
 
 float checkDist(float x1, float y1, float x2, float y2)
 {
-  return (new PVector (x1 - x2, y1 - y2).mag()); 
+  return getMagnitude(new PVector (x1 - x2, y1 - y2)); 
 }
 
 void input()
@@ -757,7 +771,22 @@ float getMagnitude(PVector v)
   return sqrt(v.x*v.x + v.y*v.y);
 }
 
+void normalizePV(PVector v)
+{
+  float mag = getMagnitude(v);
+  
+  if(mag != 0)
+  {
+    v.x /= mag;
+    v.y /= mag;
+  }
+}
 
+void setMagnitude(PVector v, float mag)
+{
+  v.x *= mag;
+  v.y *= mag;
+}
 
 void menuDone()
 {
