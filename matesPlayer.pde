@@ -45,11 +45,26 @@ boolean[] isDead;
 int counterNSpawning = second(), startN = second();
 int m = 0;
 
+//boss 
+int bossHp;
+float bossX;
+float bossY;
+float bossSpeed;
+float bossSize;
+PVector bossV;
+int bossInvul;
+int bossInvulCounter;
+
+boolean followBoss;
+
 enum Scene{MENU, GAMEPLAY, BOSS, GAMEOVER}
 Scene actualScene;
 
 enum movementOptions{MOUSE, KEYS}
 movementOptions movOptions;
+
+enum gameOverState{WIN, LOSE}
+gameOverState gameOver;
 
 //ControlP5 input
 ControlP5 cp5;
@@ -106,6 +121,7 @@ void draw()
       }
       break;
     case GAMEPLAY:
+      
       //player mov
   
       if (movOptions == movementOptions.KEYS)
@@ -281,6 +297,17 @@ void draw()
         
         if (powUpGot == 3 && checkDist(width/2, height/2, pjX, pjY) < 154)
         {
+          //boss setup
+          bossHp = 10;
+          bossX = width/2;
+          bossY = bossSize + height/30;
+          bossSpeed = 1.5;
+          bossSize = width/10;
+          bossInvul = 20;
+          bossInvulCounter = 20;
+          followBoss = true;
+          
+          
           actualScene = Scene.BOSS;
         }
         
@@ -441,34 +468,117 @@ void draw()
             
           }
           
-          for (int i = 0; i < 2; i++)
+
+          if (checkDist(pjX, pjY, pnjX[1], pnjY[1]) > dist[1])
           {
-            if (checkDist(pjX, pjY, pnjX[i], pnjY[i]) > dist[i])
+            pnjV[1] = new PVector (pjX - pnjX[1], pjY - pnjY[1]);
+            pnjV[1] = pnjV[1].normalize().setMag(pnjS[1]); //fer calcs sense .normalize y .setMag
+            pnjX[1] += pnjV[1].x;
+            pnjY[1] += pnjV[1].y;
+          }
+          
+          if(followBoss)
+          {
+            pnjV[0] = new PVector (bossX - pnjX[0], bossY - pnjY[0]);
+            pnjV[0] = pnjV[0].normalize().setMag(pnjS[0]); //fer calcs sense .normalize y .setMag
+            pnjX[0] += pnjV[0].x;
+            pnjY[0] += pnjV[0].y;
+            
+            if (checkDist(bossX, bossY ,pnjX[0], pnjY[0]) < bossSize-20)
             {
-              pnjV[i] = new PVector (pjX - pnjX[i], pjY - pnjY[i]);
-              pnjV[i] = pnjV[i].normalize().setMag(pnjS[i]); //fer calcs sense .normalize y .setMag
-              pnjX[i] += pnjV[i].x;
-              pnjY[i] += pnjV[i].y;
+              followBoss = !followBoss;
+            }
+            
+          }else
+          {
+            pnjV[0] = new PVector (pjX - pnjX[0], pjY - pnjY[0]);
+            pnjV[0] = pnjV[0].normalize().setMag(pnjS[0]); //fer calcs sense .normalize y .setMag
+            pnjX[0] += pnjV[0].x;
+            pnjY[0] += pnjV[0].y;
+            
+            if (checkDist(pjX, pjY ,pnjX[0], pnjY[0]) < pjSize)
+            {
+              followBoss = !followBoss;
+            }
+          }
+
+          
+          //boss calc
+          bossV = new PVector (bossX - pnjX[1], bossY - pnjY[1]);
+          bossV = bossV.normalize().setMag(bossSpeed); //fer calcs sense .normalize y .setMag
+          bossX -= bossV.x;
+          bossY -= bossV.y;
+          
+          if (checkDist(pnjX[1], pnjY[1], bossX, bossY) < bossSize)
+          {
+            if (pnjInvulCounter < pnjInvul)
+            {
+              pnjInvulCounter++;
+            }
+            else
+            {
+              pnjInvulCounter = 0;
+              pnj2Hp += 1;
+            }
+  
+            if (pnj2Hp == 20)
+            {
+              pnj2Hp = 10;
+              pjHp--;
             }
           }
           
-           //pj
+          if (checkDist(pjX, pjY, bossX, bossY) < bossSize || checkDist(pnjX[0], pnjY[0], bossX, bossY) < bossSize)
+          {
+            if (bossInvulCounter < bossInvul)
+            {
+              bossInvulCounter++;
+            }
+            else
+            {
+              bossInvulCounter = 0;
+              bossHp += 1;
+            }
+  
+            if (bossHp == 20)
+            {
+              actualScene = Scene.GAMEOVER;
+            }
+          }
+          
+          if (pjHp == 0)
+          {
+            actualScene = Scene.GAMEOVER;
+          }
+          
+           //pj RENDER
           fill(0, 255, 0);
           ellipse(pjX, pjY, pjSize, pjSize);
           
-          //pnj1
+          //pnj1 RENDER
           fill(0, 174, 230);
           ellipse(pnjX[0], pnjY[0], width/20, height/20);
-          fill(174, 0, 174);
           
-          //pnj2
+          //pnj2 RENDER
+          fill(174, 0, 174);
           ellipse(pnjX[1], pnjY[1], width/20, height/20);
           
+          //boss RENDER
+          fill(255, 0, 0);
+          ellipse(bossX, bossY, bossSize, bossSize);
+          
+          //pnj2Hp RENDER
           rectMode(CORNER);
           fill(255, 0, 0);
           rect(pnjX[1] - width/20, pnjY[1] - 50, width/10, width/40);
           fill(0, 255, 0);
-          rect(pnjX[1] - width/20, pnjY[1] - 50, width/pnj2Hp - (pnj2Hp-10)*4.7, width/40);
+          rect(pnjX[1] - width/20, pnjY[1] - 50, width/pnj2Hp - (pnj2Hp - 10) * 4.7, width/40);
+          
+          //bossHp RENDER
+          fill(255, 0, 0);
+          rect(bossX - width/20, bossY - 50, width/10, width/40);
+          fill(0, 255, 0);
+          rect(bossX - width/20, bossY - 50, width/bossHp - (bossHp - 10) * 4.5, width/40);
           
           rectMode(CENTER);
           
@@ -641,6 +751,12 @@ void input()
     .setSize(200,55)
     ;
 }
+
+float getMagnitude(PVector v)
+{
+  return sqrt(v.x*v.x + v.y*v.y);
+}
+
 
 
 void menuDone()
