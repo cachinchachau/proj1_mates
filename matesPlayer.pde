@@ -14,6 +14,7 @@ int pjHp;
 int[] pjDir = new int[2];
 boolean checkColosions;
 boolean timeDmg;
+int score;
 
 //pnjs (aliats)
 float[] pnjX = new float [2];
@@ -75,12 +76,11 @@ movementOptions movOptions;
 enum gameOverState{WIN, LOSE}
 gameOverState gameOver;
 
-PVector testV;
-
 //ControlP5 input
 ControlP5 cp5;
 boolean startPressed;
 boolean inputsOn = true;
+boolean tryAgain = false;
 
 
 //Set-Up
@@ -119,7 +119,17 @@ void draw()
         inputsOn = false;
       }
       
-      n = int(cp5.get(Textfield.class,"Introdueix el Nombre Enemics").getText());
+       n = int(cp5.get(Textfield.class,"Introdueix el Nombre Enemics").getText());
+      
+      switch(int(cp5.get(RadioButton.class,"controlType").getValue()))
+      {
+        case 0:
+          movOptions = movementOptions.MOUSE;
+          break;
+        case 1:
+          movOptions = movementOptions.KEYS;
+          break;
+      }
       if (startPressed)
       {
         inputsOff();
@@ -282,6 +292,8 @@ void draw()
       if (pjHp == 0)
       {
         actualScene = Scene.GAMEOVER;
+        gameOver = gameOverState.LOSE;
+        inputsOn = true;
       }
       
       for (int i = 0; i < m; i++)
@@ -289,6 +301,7 @@ void draw()
         if(!isDead[i] && checkDist(pjX,pjY,x_pnj[i],y_pnj[i]) < pjSize/1.25)
         {
           isDead[i] = true;
+          score++;
         }
       }
       
@@ -488,10 +501,13 @@ void draw()
       {
         fill(0, 255, 0);
         square(width/1.25 + i*width/20, 50,  width/25);
+        PFont font = createFont("arial",20);
+        textFont(font);
+        text("Vides:",(width/1.5 + width/15)-80, 60);
       }
           break;
         case BOSS:
-        
+          Score();
           //player mov
   
           if (movOptions == movementOptions.KEYS)
@@ -588,17 +604,22 @@ void draw()
             {
               bossInvulCounter = 0;
               bossHp += 1;
+              score++;
             }
-            //fem que la vida del boss vagi cap adalt en comptes de cap avaix per ajudar a la creacio de la UI de la vida
+  
             if (bossHp == 20)
             {
               actualScene = Scene.GAMEOVER;
+              gameOver = gameOverState.WIN;
+              inputsOn = true;
             }
           }
           
           if (pjHp == 0)
           {
             actualScene = Scene.GAMEOVER;
+            gameOver = gameOverState.LOSE;
+            inputsOn = true;
           }
           
            //pj RENDER
@@ -641,7 +662,31 @@ void draw()
           
           break;
         case GAMEOVER:
-          
+          Score();
+          if (gameOver == gameOverState.LOSE)
+          {
+            PFont font = createFont("arial",40);
+            fill(255);
+            textFont(font);
+            text( "Game Over",width/3, height/3);
+            if(inputsOn)
+            {
+              finalInput();
+              inputsOn = false;
+            }
+          }
+          else
+          {
+            PFont font = createFont("arial",40);
+            fill(255);
+            textFont(font);
+            text("You Won!!! Thanks For Playing!",width/6, height/3);
+            if(inputsOn)
+            {
+              finalInput();
+              inputsOn = false;
+            }
+          }
           break;
           
       }
@@ -1068,4 +1113,41 @@ void checkPnj2Coll()
       }
   }
 
+}
+
+void Try_Again()
+{
+  finalInputOff();
+  tryAgain = true;
+  inputsOn = true;
+  actualScene = Scene.MENU;
+}
+
+void finalInputOff()
+{
+  cp5.remove("Try_Again");
+}
+
+void finalInput()
+{
+  PFont font = createFont("arial",20);  
+  cp5 = new ControlP5(this);
+
+  cp5.addBang("Try_Again")
+    .setFont(font) 
+    .setPosition(270,400)
+    .setSize(200,55)
+    ;
+}
+
+
+void Score()
+{
+  PFont font = createFont("arial",20);  
+  fill(255);
+  textFont(font);
+  text("Score:",50,50);
+
+  textFont(font);
+  text(score,115,50);
 }
