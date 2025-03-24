@@ -11,6 +11,7 @@ PVector pjV;
 int pjHp;
 int[] pjDir = new int[2];
 boolean checkColosions;
+int score;
 
 //pnjs (aliats)
 float[] pnjX = new float [2];
@@ -127,11 +128,11 @@ void draw()
         pjInizilize();
         pnjInizilize();
         powUpDownInizilize();
-        actualScene = Scene.GAMEPLAY;
-            
+        actualScene = Scene.GAMEPLAY;  
       }
       break;
     case GAMEPLAY:
+      Score();
       
       //player mov
   
@@ -275,6 +276,7 @@ void draw()
         if(!isDead[i] && checkDist(pjX,pjY,x_pnj[i],y_pnj[i]) < pjSize/1.25)
         {
           isDead[i] = true;
+          score++;
         }
       }
       
@@ -337,6 +339,7 @@ void draw()
             {
               powUpGet[i] = true;
               powUpGot++;
+              score++;
               
               switch(i)
               {
@@ -468,6 +471,8 @@ void draw()
       }
           break;
         case BOSS:
+          Score();
+          
           //player mov
   
           if (movOptions == movementOptions.KEYS)
@@ -563,6 +568,7 @@ void draw()
             {
               bossInvulCounter = 0;
               bossHp += 1;
+              score++;
             }
   
             if (bossHp == 20)
@@ -623,6 +629,7 @@ void draw()
           
           break;
         case GAMEOVER:
+          Score();
           if (gameOver == gameOverState.LOSE)
           {
             PFont font = createFont("arial",40);
@@ -848,6 +855,7 @@ void menuDone()
   y_pnj = new float[n];
   alfa = new float[n];
   isDead = new boolean[n];
+  score = 0;
   
   //Bucle per decidir a quina punta del mapa els enemics fan spawn
   for (int i = 0; i < n; i++)
@@ -975,4 +983,15 @@ void inputsOff()
   cp5.remove("controlType"); //Aquesta funció de la llibreria serveix per eliminar els components que hem fet servir pels inputs
   cp5.remove("Introdueix el Nombre Enemics"); 
   cp5.remove("Startgame");
+}
+
+void Score()
+{
+  PFont font = createFont("arial",20);  
+  fill(255);
+  textFont(font);
+  text("Score:",50,50);
+
+  textFont(font);
+  text(score,115,50);
 }
