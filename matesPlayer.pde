@@ -72,6 +72,7 @@ PVector testV;
 ControlP5 cp5;
 boolean startPressed;
 boolean inputsOn = true;
+boolean tryAgain = false;
 
 
 //Set-Up
@@ -84,13 +85,9 @@ void setup()
   rectMode(CENTER);
   
   actualScene = Scene.MENU;
-  
-  movOptions = movementOptions.KEYS;
-  
+    
   checkColosions = false;
-  
-  //powerUps spawn
-  
+    
 }
 
 
@@ -111,6 +108,17 @@ void draw()
       }
       
       n = int(cp5.get(Textfield.class,"Introdueix el Nombre Enemics").getText());
+      
+      switch(int(cp5.get(RadioButton.class,"controlType").getValue()))
+      {
+        case 0:
+          movOptions = movementOptions.MOUSE;
+          break;
+        case 1:
+          movOptions = movementOptions.KEYS;
+          break;
+      }
+      
       if (startPressed)
       {
         inputsOff();
@@ -120,9 +128,7 @@ void draw()
         pnjInizilize();
         powUpDownInizilize();
         actualScene = Scene.GAMEPLAY;
-        
-
-        
+            
       }
       break;
     case GAMEPLAY:
@@ -260,6 +266,8 @@ void draw()
       if (pjHp == 0)
       {
         actualScene = Scene.GAMEOVER;
+        gameOver = gameOverState.LOSE;
+        inputsOn = true;
       }
       
       for (int i = 0; i < m; i++)
@@ -273,7 +281,7 @@ void draw()
       // p(alfa) = PNJ + alfa * PJ --> p(alfa) = (1-alfa) * PNJ + alfa * PJ
       for(int i = 0; i < m/2; i++)
       {
-        if (!isDead[i] &&checkDist(pjX,pjY,x_pnj[i],y_pnj[i]) >= width/2)
+        if (!isDead[i] &&checkDist(pjX,pjY,x_pnj[i],y_pnj[i]) >= width/4)
         {
           x_pnj[i] = (1.0 - (-alfa[i])) * x_pnj[i] + (-alfa[i]) * pjX;
           y_pnj[i] = (1.0 - (-alfa[i])) * y_pnj[i] + (-alfa[i]) * pjY; 
@@ -557,12 +565,16 @@ void draw()
             if (bossHp == 20)
             {
               actualScene = Scene.GAMEOVER;
+              gameOver = gameOverState.WIN;
+              inputsOn = true;
             }
           }
           
           if (pjHp == 0)
           {
             actualScene = Scene.GAMEOVER;
+            gameOver = gameOverState.LOSE;
+            inputsOn = true;
           }
           
            //pj RENDER
@@ -605,7 +617,30 @@ void draw()
           
           break;
         case GAMEOVER:
-          
+          if (gameOver == gameOverState.LOSE)
+          {
+            PFont font = createFont("arial",40);
+            fill(255);
+            textFont(font);
+            text( "Game Over",width/3, height/3);
+            if(inputsOn)
+            {
+              finalInput();
+              inputsOn = false;
+            }
+          }
+          else
+          {
+            PFont font = createFont("arial",40);
+            fill(255);
+            textFont(font);
+            text("You Won!!! Thanks For Playing!",width/6, height/3);
+            if(inputsOn)
+            {
+              finalInput();
+              inputsOn = false;
+            }
+          }
           break;
           
       }
@@ -766,6 +801,19 @@ void input()
     ;
 }
 
+void finalInput()
+{
+  PFont font = createFont("arial",20);  
+  cp5 = new ControlP5(this);
+
+  cp5.addBang("Try_Again")
+    .setFont(font) 
+    .setPosition(270,400)
+    .setSize(200,55)
+    ;
+}
+
+
 float getMagnitude(PVector v)
 {
   return sqrt(v.x*v.x + v.y*v.y);
@@ -803,19 +851,19 @@ void menuDone()
     switch(a)
     {
       case 1:
-      x_pnj[i] = 0;
-      y_pnj[i] = 0;
+      x_pnj[i] = width;
+      y_pnj[i] = height/2;
       break;
       case 2:
       x_pnj[i] = 0;
-      y_pnj[i] = height;
+      y_pnj[i] = height/2;
       break;
       case 3: 
-      x_pnj[i] = width;
+      x_pnj[i] = width/2;
       y_pnj[i] = 0;
       break;
       case 4: 
-      x_pnj[i] = width;
+      x_pnj[i] = width/2;
       y_pnj[i] = height;
       break;
     }
@@ -879,7 +927,6 @@ void pjInizilize()
 
 void pnjInizilize()
 {
-
     //pnjs stats
     pnjS[0] = 5;
     //0 porque espera a ser recogido
@@ -902,6 +949,19 @@ void pnjInizilize()
 void Startgame()
 {
   startPressed = true;
+}
+
+void Try_Again()
+{
+  finalInputOff();
+  tryAgain = true;
+  inputsOn = true;
+  actualScene = Scene.MENU;
+}
+
+void finalInputOff()
+{
+  cp5.remove("Try_Again");
 }
 
 void inputsOff()
