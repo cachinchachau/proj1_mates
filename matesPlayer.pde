@@ -2,6 +2,8 @@
 //Variables
 import controlP5.*;
 
+int damageTime;
+
 //player
 float pjX;
 float pjY;
@@ -11,6 +13,7 @@ PVector pjV;
 int pjHp;
 int[] pjDir = new int[2];
 boolean checkColosions;
+boolean timeDmg;
 
 //pnjs (aliats)
 float[] pnjX = new float [2];
@@ -56,6 +59,12 @@ int bossInvul;
 int bossInvulCounter;
 
 boolean followBoss;
+
+//obstacles
+
+float[] obsX = new float [6];
+float[] obsY = new float [6];
+float obsSize;
 
 enum Scene{MENU, GAMEPLAY, BOSS, GAMEOVER}
 Scene actualScene;
@@ -118,10 +127,12 @@ void draw()
         menuDone();
         pjInizilize();
         pnjInizilize();
+        obsInizilize();
         powUpDownInizilize();
         actualScene = Scene.GAMEPLAY;
+        damageTime = 1000*30 + millis();
+        timeDmg = false;
         
-
         
       }
       break;
@@ -149,6 +160,10 @@ void draw()
         pjY += pjV.y;
       }   
       
+      checkPlayerColl();
+      checkPnj1Coll();
+      checkPnj2Coll();
+      
       //check if pnj2 picked
       if (checkDist(pjX, pjY, pnjX[1], pnjY[1]) < 50) //check sense .mag
       {
@@ -166,12 +181,15 @@ void draw()
             
             while(!canSpawn)// con este bucle nos aseguramos de que no spawneen encima del jugador, por lo tanto coleccionandolos automaticamente.
             {
-              powUpX[i] = random(50, 750);
-              powUpY[i] = random(50, 750);
-              
-              if (checkDist(pjX, pjY, powUpX[i], powUpY[i]) > width/20)
+              for(int j  = 0; j < 6; j++)
               {
-                canSpawn = true;
+                powUpX[i] = random(50, 750);
+                powUpY[i] = random(50, 750);
+              
+                if (checkDist(pjX, pjY, powUpX[i], powUpY[i]) > width/20 && checkDist(obsX[j], obsY[j], powUpX[i], powUpY[i]) > obsSize)
+                {
+                  canSpawn = true;
+                }
               }
               
             }
@@ -184,14 +202,16 @@ void draw()
             
             while(!canSpawn)
             {
-              powDownX[i] = random(50, 750);
-              powDownY[i] = random(50, 750);
-              
-              if (checkDist(pjX, pjY, powDownX[i], powDownY[i]) > width/20)
+              for(int j  = 0; j < 6; j++)
               {
-                canSpawn = true;
-              }
+                powDownX[i] = random(50, 750);
+                powDownY[i] = random(50, 750);
               
+                if (checkDist(pjX, pjY, powDownX[i], powDownY[i]) > width/20 && checkDist(obsX[j], obsY[j], powDownX[i], powDownY[i]) > obsSize)
+                {
+                  canSpawn = true;
+                }
+              }
             }
             
           }
@@ -237,7 +257,7 @@ void draw()
       
       for (int i = 0; i < m; i++)
       {
-        if (checkDist(pnjX[1], pnjY[1], x_pnj[i], y_pnj[i]) < width/25)
+        if ( !isDead[i] && checkDist(pnjX[1], pnjY[1], x_pnj[i], y_pnj[i]) < width/25)
         {
           if (pnjInvulCounter < pnjInvul)
           {
@@ -304,8 +324,7 @@ void draw()
       
       if (checkColosions)
       {
-        
-        if (powUpGot == 3 && checkDist(width/2, height/2, pjX, pjY) < 154)
+        if (powUpGot == 3 && checkDist(width/2, height/2, pjX, pjY) < 131)
         {
           //boss setup
           bossHp = 10;
@@ -385,13 +404,6 @@ void draw()
       
       //RENDERS
       
-      //portal
-      if (powUpGot == 3)// miramos la condicion para crear el portal
-      {
-        fill(255, 0, 255);
-        ellipse(width/2, height/2, width/3, width/3);
-      }
-      
       //pj
       fill(0, 255, 0);
       ellipse(pjX, pjY, pjSize, pjSize);
@@ -439,6 +451,26 @@ void draw()
        }
      }
      
+     //OBS RENDER
+     fill(200, 200, 200);
+     for (int i = 0; i < 6; i++)
+     {
+       if(i<3)
+       {
+         ellipse(obsX[i], obsY[i], obsSize, obsSize);
+       }
+       else
+       {
+         rect(obsX[i], obsY[i], obsSize, obsSize);
+       }
+     }
+     
+     if (powUpGot == 3)
+     {
+       fill(255, 0, 255);
+       ellipse(width/2, height/2, width/4, height/4);
+     }
+     
       EnemySpawner();
       
       rectMode(CORNER);
@@ -453,10 +485,11 @@ void draw()
       for (int i = 1; i <= pjHp; i++)
       {
         fill(0, 255, 0);
-        square(width/1.5 + i*width/15, 50,  width/25);
+        square(width/1.25 + i*width/20, 50,  width/25);
       }
           break;
         case BOSS:
+        
           //player mov
   
           if (movOptions == movementOptions.KEYS)
@@ -471,8 +504,7 @@ void draw()
           }
           else
           {
-            
-            pjV = new PVector (pjDir[0], pjDir[1]);
+            pjV = new PVector (mouseX - pjX, mouseY - pjY);
             normalizePV(pjV);
             setMagnitude(pjV, pjSpeed);
             pjX += pjV.x;
@@ -600,7 +632,7 @@ void draw()
          for (int i = 1; i <= pjHp; i++)
          {
            fill(0, 255, 0);
-           square(width/1.5 + i*width/15, 50,  width/25);
+           square(width/1.25 + i*width/20, 50,  width/25);
          }
           
           break;
@@ -610,6 +642,11 @@ void draw()
           
       }
       
+      if (millis() >= damageTime && !timeDmg)
+      {
+        pjHp -= 1;
+        timeDmg = true;
+      }
       
 }
 
@@ -877,6 +914,19 @@ void pjInizilize()
     pjY = height/2;
 }
 
+void obsInizilize()
+{
+  
+  obsSize = width/8;
+  
+  for (int i = 0; i < 6; i++)
+  {
+    obsX[i] = random(50, 750);
+    obsY[i] = random(50, 750);
+  }
+  
+}
+
 void pnjInizilize()
 {
 
@@ -909,4 +959,105 @@ void inputsOff()
   cp5.remove("controlType"); //Aquesta funció de la llibreria serveix per eliminar els components que hem fet servir pels inputs
   cp5.remove("Introdueix el Nombre Enemics"); 
   cp5.remove("Startgame");
+}
+
+void checkPlayerColl()
+{
+  // Calcular límites del jugador
+  float objL = pjX - pjSize/2;
+  float objR = pjX + pjSize/2;
+  float objT = pjY - pjSize/2;
+  float objB = pjY + pjSize/2;
+ 
+  for(int i = 0; i < 6; i++)
+  {
+      // Calcular límites del muro
+      float obsL = obsX[i] - obsSize/2;
+      float obsR = obsX[i] + obsSize/2;
+      float obsT = obsY[i] - obsSize/2;
+      float obsB = obsY[i] + obsSize/2;
+      
+      // Detección AABB correcta
+      if(objR >obsL && objL < obsR && objB > obsT && objT < obsB) 
+      {
+        println("colliding");
+          pjV = new PVector (obsX[i] - pjX, obsY[i] - pjY);
+          normalizePV(pjV);
+          setMagnitude(pjV, pjSpeed);
+          pjX -= pjV.x;
+          pjY -= pjV.y;
+      }
+  }
+
+}
+
+void checkPnj1Coll()
+{
+  // Calcular límites del jugador
+  float objL = pnjX[0] - pjSize/2;
+  float objR = pnjX[0] + pjSize/2;
+  float objT = pnjY[0] - pjSize/2;
+  float objB = pnjY[0] + pjSize/2;
+ 
+  for(int i = 0; i < 6; i++)
+  {
+      // Calcular límites del muro
+      float obsL = obsX[i] - obsSize/2;
+      float obsR = obsX[i] + obsSize/2;
+      float obsT = obsY[i] - obsSize/2;
+      float obsB = obsY[i] + obsSize/2;
+      
+      // Detección AABB correcta
+      if(objR >obsL && objL < obsR && objB > obsT && objT < obsB) 
+      {
+        println("colliding");
+          pnjV[0] = new PVector (obsX[i] - pnjX[0], obsY[i] - pnjY[0]);
+          normalizePV(pnjV[0]);
+          setMagnitude(pnjV[0], pnjS[0]);
+          pnjX[0] -= pnjV[0].x;
+          pnjY[0] -= pnjV[0].y;
+      }
+  }
+
+}
+
+void checkPnj2Coll()
+{
+  // Calcular límites del jugador
+  float objL = pnjX[1] - pjSize/2;
+  float objR = pnjX[1] + pjSize/2;
+  float objT = pnjY[1] - pjSize/2;
+  float objB = pnjY[1] + pjSize/2;
+ 
+  for(int i = 0; i < 6; i++)
+  {
+      // Calcular límites del muro
+      float obsL = obsX[i] - obsSize/2;
+      float obsR = obsX[i] + obsSize/2;
+      float obsT = obsY[i] - obsSize/2;
+      float obsB = obsY[i] + obsSize/2;
+      
+      // Detección AABB correcta
+      if(objR >obsL && objL < obsR && objB > obsT && objT < obsB) 
+      {
+        println("colliding");
+          pnjV[1] = new PVector (obsX[i] - pnjX[1], obsY[i] - pnjY[1]);
+          normalizePV(pnjV[1]);
+          setMagnitude(pnjV[1], pnjS[1]);
+          pnjX[1] -= pnjV[1].x;
+          pnjY[1] -= pnjV[1].y;
+          
+          if (!(pnjInvulCounter < pnjInvul))
+            {
+              pnj2Hp += 1;
+            }
+  
+            if (pnj2Hp == 20)
+            {
+              pnj2Hp = 10;
+              pjHp--;
+            }
+      }
+  }
+
 }
