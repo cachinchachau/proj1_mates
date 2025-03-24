@@ -7,15 +7,20 @@ float pjX;
 float pjY;
 float pjSpeed;
 float pjSize;
+PVector pjV;
+int pjHp;
 int[] pjDir = new int[2];
+boolean checkColosions;
 
 //pnjs (aliats)
 float[] pnjX = new float [2];
 float[] pnjY = new float [2];
 float[] pnjS = new float [2];
 int[] dist = new int [2];
-int[] hp = new int[2];
 PVector[] pnjV = new PVector [2];
+int pnj2Hp;
+int pnjInvul;
+int pnjInvulCounter;
 
 //power ups
 float[] powUpX = new float [3];
@@ -35,6 +40,7 @@ int n = 5;
 float[] x_pnj = new float[n]; //5 momentani, s'ha de fer lo de input nº enemics
 float[] y_pnj = new float[n]; //5 momentani, s'ha de fer lo de input nº enemics
 float[] alfa = new float[n]; //5 momentani, s'ha de fer lo de input nº enemics
+boolean[] isDead = new boolean[n];
 
 int counterNSpawning = second(), startN = second();
 int m = 0;
@@ -42,9 +48,11 @@ int m = 0;
 enum Scene{MENU, GAMEPLAY, BOSS, GAMEOVER}
 Scene actualScene;
 
+enum movementOptions{MOUSE, KEYS}
+movementOptions movOptions;
+
 //ControlP5 input
 ControlP5 cp5;
-
 
 
 //Set-Up
@@ -56,11 +64,19 @@ void setup()
   //asegurarnos de que cuadrados/rectangulos aparecen al centro de las coordenadas
   rectMode(CENTER);
   
-  actualScene = Scene.MENU;
+  actualScene = Scene.GAMEPLAY;
+  
+  movOptions = movementOptions.KEYS;
+  
+  checkColosions = false;
   
   //pj stats
   pjSize = width/20;
   pjSpeed = 7;
+  pjHp = 3;
+  
+  pjX = width/2;
+  pjY = height/2;
   
   //pnjs stats
   pnjS[0] = 5;
@@ -68,8 +84,10 @@ void setup()
   pnjS[1] = 0;
   dist[0] = 125;
   dist[1] = 75;
-  hp[0] = 5;
-  hp[0] = 5;
+  pnj2Hp = 10;
+  
+  pnjInvul = 30;
+  pnjInvulCounter = pnjInvul;
   
   //pnjs spawnpoint
   pnjX[0] = width/2;
@@ -88,8 +106,8 @@ void setup()
   //powerDowns spawnpoint
   for (int i = 0; i < 3; i++)
   {
-    powDownX[i] = random(50, 750);
-    powDownY[i] = random(50, 750);
+    powDownX[i] = 10000;
+    powDownY[i] = 10000;
   }
   
   //powerUps get = false
@@ -129,6 +147,10 @@ void setup()
     }
   }
   
+  for (int i = 0; i < n; i ++)
+  {
+    isDead[i] = false;
+  }
   
   for (int i = 0; i < n; i++)
   {
@@ -148,7 +170,6 @@ void setup()
 
 
 
-
 //Draw
 void draw()
 {
@@ -161,163 +182,358 @@ void draw()
       
       break;
     case GAMEPLAY:
-      
-      break;
-    case BOSS:
-      
-      break;
-    case GAMEOVER:
-      
-      break;
-      
-  }
+      //player mov
   
-  pjX = mouseX;
-  pjY = mouseY;
-  
-  //check if pnj2 picked
-  if (checkDist(pjX, pjY, pnjX[1], pnjY[1]) < 50) //check sense .mag
-  {
-    //ahora te sigue
-    pnjS[1] = 3;
-    powers = true;
-    
-    if (!powsSpawned)
-    {
-      
-      //spawnPows
-      for (int i = 0; i < 3; i++)
+      if (movOptions == movementOptions.KEYS)
       {
-        boolean canSpawn = false;
         
-        while(!canSpawn)// con este bucle nos aseguramos de que no spawneen encima del jugador, por lo tanto coleccionandolos automaticamente.
+        pjV = new PVector (pjDir[0], pjDir[1]);
+        pjV = pjV.normalize().setMag(pjSpeed);
+        pjX += pjV.x;
+        pjY += pjV.y;
+        
+      }
+      else
+      {
+        
+        pjV = new PVector (mouseX - pjX, mouseY - pjY);
+        pjV = pjV.normalize().setMag(pjSpeed); //fer calcs sense .normalize y .setMag
+        pjX += pjV.x;
+        pjY += pjV.y;
+        
+      }   
+      
+      //check if pnj2 picked
+      if (checkDist(pjX, pjY, pnjX[1], pnjY[1]) < 50) //check sense .mag
+      {
+        //ahora te sigue
+        pnjS[1] = 3;
+        powers = true;
+        
+        if (!powsSpawned)
         {
-          powUpX[i] = random(50, 750);
-          powUpY[i] = random(50, 750);
           
-          if (checkDist(pjX, pjY, powUpX[i], powUpY[i]) > width/20)
+          //spawnPows
+          for (int i = 0; i < 3; i++)
           {
-            canSpawn = true;
+            boolean canSpawn = false;
+            
+            while(!canSpawn)// con este bucle nos aseguramos de que no spawneen encima del jugador, por lo tanto coleccionandolos automaticamente.
+            {
+              powUpX[i] = random(50, 750);
+              powUpY[i] = random(50, 750);
+              
+              if (checkDist(pjX, pjY, powUpX[i], powUpY[i]) > width/20)
+              {
+                canSpawn = true;
+              }
+              
+            }
+            
           }
-          
+          //powerDowns spawnpoint
+          for (int i = 0; i < 3; i++)
+          {
+            boolean canSpawn = false;
+            
+            while(!canSpawn)
+            {
+              powDownX[i] = random(50, 750);
+              powDownY[i] = random(50, 750);
+              
+              if (checkDist(pjX, pjY, powDownX[i], powDownY[i]) > width/20)
+              {
+                canSpawn = true;
+              }
+              
+            }
+            
+          }
+          powsSpawned = true;
         }
         
       }
-      //powerDowns spawnpoint
-      for (int i = 0; i < 3; i++)
+      
+      //CALC
+      
+      
+      //pnj1 calc
+      if (checkDist(pjX, pjY, pnjX[0], pnjY[0]) > dist[0])
       {
-        boolean canSpawn = false;
-        
-        while(!canSpawn)
-        {
-          powDownX[i] = random(50, 750);
-          powDownY[i] = random(50, 750);
-          
-          if (checkDist(pjX, pjY, powDownX[i], powDownY[i]) > width/20)
-          {
-            canSpawn = true;
-          }
-          
-        }
-        
+        pnjV[0] = new PVector (pjX - pnjX[0], pjY - pnjY[0]);
+        pnjV[0] = pnjV[0].normalize().setMag(pnjS[0]); //fer calcs sense .normalize y .setMag
+        pnjX[0] += pnjV[0].x;
+        pnjY[0] += pnjV[0].y;
       }
-      powsSpawned = true;
-    }
-    
-  }
-  
-  //CALC
-  
-  
-  //pnjs calc
-  for (int i = 0; i < 2; i++)
-  {
-    if (checkDist(pjX, pjY, pnjX[i], pnjY[i]) > dist[i])
-    {
-      pnjV[i] = new PVector (pjX - pnjX[i], pjY - pnjY[i]);
-      pnjV[i] = pnjV[i].normalize().setMag(pnjS[i]); //fer calcs sense .normalize y .setMag
-      pnjX[i] += pnjV[i].x;
-      pnjY[i] += pnjV[i].y;
-    }
-  }
-  
-  // p(alfa) = PNJ + alfa * PJ --> p(alfa) = (1-alfa) * PNJ + alfa * PJ
-  for(int i = 0; i < m/2; i++)
-  {
-    if (checkDist(pjX,pjY,x_pnj[i],y_pnj[i]) >= width/2)
-    {
-      x_pnj[i] = (1.0 - (-alfa[i])) * x_pnj[i] + (-alfa[i]) * pjX;
-      y_pnj[i] = (1.0 - (-alfa[i])) * y_pnj[i] + (-alfa[i]) * pjY; 
-    }
-    else
-    {
-      x_pnj[i] = (1.0 - alfa[i]) * x_pnj[i] + alfa[i] * pjX;
-      y_pnj[i] = (1.0 - alfa[i]) * y_pnj[i] + alfa[i] * pjY; 
-    }
-  }
-    for(int i = m/2; i < m/4 + m/2; i++)
-  {
-    x_pnj[i] = (1.0 - alfa[i]) * x_pnj[i] + alfa[i] * pnjX[0];
-    y_pnj[i] = (1.0 - alfa[i]) * y_pnj[i] + alfa[i] * pnjY[0]; 
-  }
-    for(int i = m/2+m/4; i < m; i++)
-  {
-    x_pnj[i] = (1.0 - alfa[i]) * x_pnj[i] + alfa[i] * pnjX[1];
-    y_pnj[i] = (1.0 - alfa[i]) * y_pnj[i] + alfa[i] * pnjY[1]; 
-  }
-  
-  //RENDERS
-  
-  //portal
-  if (powUpGot == 3)// miramos la condicion para crear el portal
-  {
-    fill(255, 0, 255);
-    ellipse(width/2, height/2, width/3, width/3);
-  }
-  
-  //pj
-  fill(0, 255, 0);
-  ellipse(pjX, pjY, pjSize, pjSize);
-  
-  //pnj1
-  fill(0, 174, 230);
-  ellipse(pnjX[0], pnjY[0], width/20, height/20);
-  fill(174, 0, 174);
-  
-  //pnj2
-  ellipse(pnjX[1], pnjY[1], width/20, height/20);
-  
-  //powerups
-  fill(255, 255, 255);
-  for (int i = 0; i < 3 && powers ; i++)
-  {
-    if (!powUpGet[i])
-    {
-      square(powUpX[i], powUpY[i], 20);
-    }
-  }
-  
-  //powerdowns
-  fill(255);
-  for (int i = 0; i < 3 && powers ; i++)
-  {
-    if (!powDownGet[i])
-    {
-      square(powDownX[i], powDownY[i], 20);
-    }
-  }
+      
+      for (int i = 0; i < m; i++)
+      {
+        if (checkDist(pnjX[0], pnjY[0], x_pnj[i], y_pnj[i]) < 100)
+        {
+          pnjV[0] = new PVector (x_pnj[i] - pnjX[0], y_pnj[i] - pnjY[0]);
+          pnjV[0] = pnjV[0].normalize().setMag(2); //fer calcs sense .normalize y .setMag
+          pnjX[0] -= pnjV[0].x;
+          pnjY[0] -= pnjV[0].y;
+        }
+      }
+      
+      //pnj2 calc
+      if (checkDist(pjX, pjY, pnjX[1], pnjY[1]) > dist[1])
+      {
+        pnjV[1] = new PVector (pjX - pnjX[1], pjY - pnjY[1]);
+        pnjV[1] = pnjV[1].normalize().setMag(pnjS[1]); //fer calcs sense .normalize y .setMag
+        pnjX[1] += pnjV[1].x;
+        pnjY[1] += pnjV[1].y;
+      }
+      
+      for (int i = 0; i < m; i++)
+      {
+        if (checkDist(pnjX[1], pnjY[1], x_pnj[i], y_pnj[i]) < width/25)
+        {
+          if (pnjInvulCounter < pnjInvul)
+          {
+            pnjInvulCounter++;
+          }
+          else
+          {
+            pnjInvulCounter = 0;
+            pnj2Hp -= 1;
+          }
 
- //Draw els enemics
- if (m > 0)
- {
-   for (int i = 0; i < m; i++)
-   {
-     fill(255,0,0);
-     ellipse(x_pnj[i],y_pnj[i], width/25, height/25);
-   }
- }
- 
-  EnemySpawner();
+          if (pnj2Hp == 0)
+          {
+            pnj2Hp = 10;
+            pjHp--;
+          }
+        }
+      }
+      
+      if (pjHp == 0)
+      {
+        actualScene = Scene.GAMEOVER;
+      }
+      
+      for (int i = 0; i < m; i++)
+      {
+        if(!isDead[i] && checkDist(pjX,pjY,x_pnj[i],y_pnj[i]) < pjSize/1.25)
+        {
+          isDead[i] = true;
+        }
+      }
+      
+      // p(alfa) = PNJ + alfa * PJ --> p(alfa) = (1-alfa) * PNJ + alfa * PJ
+      for(int i = 0; i < m/2; i++)
+      {
+        if (!isDead[i] &&checkDist(pjX,pjY,x_pnj[i],y_pnj[i]) >= width/2)
+        {
+          x_pnj[i] = (1.0 - (-alfa[i])) * x_pnj[i] + (-alfa[i]) * pjX;
+          y_pnj[i] = (1.0 - (-alfa[i])) * y_pnj[i] + (-alfa[i]) * pjY; 
+        }
+        else if(!isDead[i])
+        {
+          x_pnj[i] = (1.0 - alfa[i]) * x_pnj[i] + alfa[i] * pjX;
+          y_pnj[i] = (1.0 - alfa[i]) * y_pnj[i] + alfa[i] * pjY; 
+        }
+      }
+        for(int i = m/2; i < m/4 + m/2; i++)
+      {
+        if (!isDead[i])
+        {
+          x_pnj[i] = (1.0 - alfa[i]) * x_pnj[i] + alfa[i] * pnjX[0];
+          y_pnj[i] = (1.0 - alfa[i]) * y_pnj[i] + alfa[i] * pnjY[0];    
+        }
+     
+      }
+        for(int i = m/2+m/4; i < m; i++)
+      {
+        if (!isDead[i])
+        {
+          x_pnj[i] = (1.0 - alfa[i]) * x_pnj[i] + alfa[i] * pnjX[1];
+          y_pnj[i] = (1.0 - alfa[i]) * y_pnj[i] + alfa[i] * pnjY[1];
+        }
+      }
+      
+      if (checkColosions)
+      {
+        
+        if (powUpGot == 3 && checkDist(width/2, height/2, pjX, pjY) < 154)
+        {
+          actualScene = Scene.BOSS;
+        }
+        
+          for (int i = 0; i < 3; i++)
+        {
+          if (!powUpGet[i])
+          {
+            if (checkDist(pjX, pjY, powUpX[i], powUpY[i]) < pjSize)
+            {
+              powUpGet[i] = true;
+              powUpGot++;
+              
+              switch(i)
+              {
+                case 0:
+                  pjSize *= 1.5;
+                  break;
+                case 1:
+                  pnjS[0] += 2;
+                  pnjS[1] += 2;
+                  break;
+                case 2:
+                  pjSpeed += 3;
+                  break;
+              }
+            }
+          }
+          
+          if (pjV.mag() == 0)
+          {
+            checkColosions = false;
+          }
+      }
+      
+      
+      //powerDowns
+      for (int i = 0; i < 3; i++)
+      {
+        if (!powDownGet[i])
+        {
+          if (checkDist(pjX, pjY, powDownX[i], powDownY[i]) < pjSize) 
+          {
+            powDownGet[i] = true;
+            
+            switch(i)
+              {
+                case 0:
+                  pjSize /= 1.5;
+                  break;
+                case 1:
+                  pnjS[0] -= 2;
+                  pnjS[1] -= 2;
+                  break;
+                case 2:
+                  pjSpeed -= 3;
+                  break;
+              }
+              
+          }
+        }
+      }
+    
+      }
+      
+      
+      //RENDERS
+      
+      //portal
+      if (powUpGot == 3)// miramos la condicion para crear el portal
+      {
+        fill(255, 0, 255);
+        ellipse(width/2, height/2, width/3, width/3);
+      }
+      
+      //pj
+      fill(0, 255, 0);
+      ellipse(pjX, pjY, pjSize, pjSize);
+      
+      //pnj1
+      fill(0, 174, 230);
+      ellipse(pnjX[0], pnjY[0], width/20, height/20);
+      fill(174, 0, 174);
+      
+      //pnj2
+      ellipse(pnjX[1], pnjY[1], width/20, height/20);
+      
+      //powerups
+      fill(255, 255, 255);
+      for (int i = 0; i < 3 && powers ; i++)
+      {
+        if (!powUpGet[i])
+        {
+          square(powUpX[i], powUpY[i], 20);
+        }
+      }
+      
+      //powerdowns
+      fill(255);
+      for (int i = 0; i < 3 && powers ; i++)
+      {
+        if (!powDownGet[i])
+        {
+          square(powDownX[i], powDownY[i], 20);
+        }
+      }
+    
+     //Draw els enemics
+     if (m > 0)
+     {
+       for (int i = 0; i < m; i++)
+       {
+         
+         if (!isDead[i])
+         {
+           fill(255,0,0);
+           ellipse(x_pnj[i],y_pnj[i], width/25, height/25);
+         }
+    
+       }
+     }
+     
+      EnemySpawner();
+          break;
+        case BOSS:
+          //player mov
+  
+          if (movOptions == movementOptions.KEYS)
+          {
+            
+            pjV = new PVector (pjDir[0], pjDir[1]);
+            pjV = pjV.normalize().setMag(pjSpeed);
+            pjX += pjV.x;
+            pjY += pjV.y;
+            
+          }
+          else
+          {
+            
+            pjV = new PVector (mouseX - pjX, mouseY - pjY);
+            pjV = pjV.normalize().setMag(pjSpeed); //fer calcs sense .normalize y .setMag
+            pjX += pjV.x;
+            pjY += pjV.y;
+            
+          }
+          
+          for (int i = 0; i < 2; i++)
+          {
+            if (checkDist(pjX, pjY, pnjX[i], pnjY[i]) > dist[i])
+            {
+              pnjV[i] = new PVector (pjX - pnjX[i], pjY - pnjY[i]);
+              pnjV[i] = pnjV[i].normalize().setMag(pnjS[i]); //fer calcs sense .normalize y .setMag
+              pnjX[i] += pnjV[i].x;
+              pnjY[i] += pnjV[i].y;
+            }
+          }
+          
+           //pj
+          fill(0, 255, 0);
+          ellipse(pjX, pjY, pjSize, pjSize);
+          
+          //pnj1
+          fill(0, 174, 230);
+          ellipse(pnjX[0], pnjY[0], width/20, height/20);
+          fill(174, 0, 174);
+          
+          //pnj2
+          ellipse(pnjX[1], pnjY[1], width/20, height/20);
+          
+          break;
+        case GAMEOVER:
+          
+          break;
+          
+      }
+      
+      
 }
 
 
@@ -331,17 +547,10 @@ void EnemySpawner()
   }
 }
 
-
-
 void mouseMoved()
 {
   
-  //COLLISIONES
-  
-  //println(checkDist(pjX, pjY, powUpX[0], powUpY[0]));
-  //println(pjX, pjY);
-  //println(powUpX[0], powUpY[0]);
-  
+  //COLLISIONES  
   //powerUps
   for (int i = 0; i < 3; i++)
   {
@@ -358,11 +567,11 @@ void mouseMoved()
             pjSize *= 1.5;
             break;
           case 1:
-            pnjS[0] = 7;
-            pnjS[1] = 5;
+            pnjS[0] += 2;
+            pnjS[1] += 2;
             break;
           case 2:
-            pjSpeed = 10;
+            pjSpeed += 3;
             break;
         }
       }
@@ -377,6 +586,20 @@ void mouseMoved()
       if (checkDist(pjX, pjY, powDownX[i], powDownY[i]) < pjSize/1.25) //dividimos entre 1,25 ya que sino lo hacemos al detectar al jugador cuando ha tenido su tama;o augmentado no queda bien
       {
         powDownGet[i] = true;
+        
+        switch(i)
+          {
+            case 0:
+              pjSize /= 1.5;
+              break;
+            case 1:
+              pnjS[0] -= 2;
+              pnjS[1] -= 2;
+              break;
+            case 2:
+              pjSpeed -= 3;
+              break;
+          }
       }
     }
   }
@@ -385,6 +608,8 @@ void mouseMoved()
 
 void keyPressed()
 {
+  
+  checkColosions = true;
   
   switch(keyCode)
   {
@@ -400,13 +625,30 @@ void keyPressed()
     case RIGHT:
       pjDir[0] = 1;
       break;
-    default:
-      pjDir[0] = 0;
-      pjDir[1] = 0;
     
   }
+
+}
+
+void keyReleased()
+{
   
-  println(pjDir[0], pjDir[1]);
+  switch(keyCode)
+  {
+    case UP:
+      pjDir[1] = 0;
+      break;
+    case DOWN:
+      pjDir[1] = 0;
+      break;
+    case LEFT:
+      pjDir[0] = 0;
+      break;
+    case RIGHT:
+      pjDir[0] = 0;
+      break;
+    
+  }
 
 }
 
