@@ -72,57 +72,8 @@ void setup()
   
   checkColosions = false;
   
-  //pj stats
-  pjSize = width/20;
-  pjSpeed = 7;
-  pjHp = 3;
-  
-  pjX = width/2;
-  pjY = height/2;
-  
-  //pnjs stats
-  pnjS[0] = 5;
-  //0 porque espera a ser recogido
-  pnjS[1] = 0;
-  dist[0] = 125;
-  dist[1] = 75;
-  pnj2Hp = 10;
-  
-  pnjInvul = 30;
-  pnjInvulCounter = pnjInvul;
-  
-  //pnjs spawnpoint
-  pnjX[0] = width/2;
-  pnjY[1] = 0;
-  pnjX[1] = random(750);
-  pnjY[1] = random(750);
-  
   //powerUps spawn
-  powsSpawned = false;
   
-  for (int i = 0; i < 3; i++)
-  {
-    powUpX[i] = 10000;
-    powUpY[i] = 10000;
-  }
-  //powerDowns spawnpoint
-  for (int i = 0; i < 3; i++)
-  {
-    powDownX[i] = 10000;
-    powDownY[i] = 10000;
-  }
-  
-  //powerUps get = false
-  for (int i = 0; i < 3; i++)
-  {
-    powUpGet[i] = false;
-  }
-  //powerDowns get = false
-  for (int i = 0; i < 3; i++)
-  {
-    powDownGet[i] = false;
-  }
-
 }
 
 
@@ -148,6 +99,9 @@ void draw()
         inputsOff();
         startPressed = false;
         menuDone();
+        pjInizilize();
+        pnjInizilize();
+        powUpDownInizilize();
         actualScene = Scene.GAMEPLAY;
       }
       break;
@@ -266,10 +220,10 @@ void draw()
           else
           {
             pnjInvulCounter = 0;
-            pnj2Hp -= 1;
+            pnj2Hp += 1;
           }
 
-          if (pnj2Hp == 0)
+          if (pnj2Hp == 20)
           {
             pnj2Hp = 10;
             pjHp--;
@@ -449,6 +403,21 @@ void draw()
      }
      
       EnemySpawner();
+      
+      rectMode(CORNER);
+      fill(255, 0, 0);
+      rect(pnjX[1] - width/20, pnjY[1] - 50, width/10, width/40);
+      fill(0, 255, 0);
+      rect(pnjX[1] - width/20, pnjY[1] - 50, width/pnj2Hp - (pnj2Hp-10)*4.7, width/40);
+      
+      rectMode(CENTER);
+      
+      //pjHp RENDER
+      for (int i = 1; i <= pjHp; i++)
+      {
+        fill(0, 255, 0);
+        square(width/1.5 + i*width/15, 50,  width/25);
+      }
           break;
         case BOSS:
           //player mov
@@ -494,6 +463,21 @@ void draw()
           
           //pnj2
           ellipse(pnjX[1], pnjY[1], width/20, height/20);
+          
+          rectMode(CORNER);
+          fill(255, 0, 0);
+          rect(pnjX[1] - width/20, pnjY[1] - 50, width/10, width/40);
+          fill(0, 255, 0);
+          rect(pnjX[1] - width/20, pnjY[1] - 50, width/pnj2Hp - (pnj2Hp-10)*4.7, width/40);
+          
+          rectMode(CENTER);
+          
+         //pjHp RENDER
+         for (int i = 1; i <= pjHp; i++)
+         {
+           fill(0, 255, 0);
+           square(width/1.5 + i*width/15, 50,  width/25);
+         }
           
           break;
         case GAMEOVER:
@@ -711,7 +695,64 @@ void menuDone()
 }
 
 
+void powUpDownInizilize()
+{
+    powsSpawned = false;
+    
+    for (int i = 0; i < 3; i++)
+    {
+      powUpX[i] = 1000000;
+    }
+    
+    for (int i = 0; i < 3; i++)
+    {
+      powDownX[i] = 100000;
+    }
+    
+    //powerUps get = false
+    for (int i = 0; i < 3; i++)
+    {
+      powUpGet[i] = false;
+    }
+    //powerDowns get = false
+    for (int i = 0; i < 3; i++)
+    {
+      powDownGet[i] = false;
+    }
+}
 
+void pjInizilize()
+{
+    //pj stats
+    pjSize = width/20;
+    pjSpeed = 7;
+    pjHp = 3;
+    
+    pjX = width/2;
+    pjY = height/2;
+}
+
+void pnjInizilize()
+{
+
+    //pnjs stats
+    pnjS[0] = 5;
+    //0 porque espera a ser recogido
+    pnjS[1] = 0;
+    dist[0] = 125;
+    dist[1] = 75;
+    pnj2Hp = 10;
+    
+    pnjInvul = 7;
+    pnjInvulCounter = pnjInvul;
+    
+    //pnjs spawnpoint
+    pnjX[0] = width/2;
+    pnjY[1] = 0;
+    pnjX[1] = random(750);
+    pnjY[1] = random(750);
+
+}
 
 void Startgame()
 {
