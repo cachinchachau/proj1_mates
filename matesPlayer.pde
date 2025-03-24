@@ -54,6 +54,7 @@ movementOptions movOptions;
 //ControlP5 input
 ControlP5 cp5;
 boolean startPressed;
+boolean inputsOn = true;
 
 
 //Set-Up
@@ -121,9 +122,7 @@ void setup()
   {
     powDownGet[i] = false;
   }
-  
- 
-  input(); //funcio inputs
+
 }
 
 
@@ -137,6 +136,12 @@ void draw()
   switch (actualScene)
   {
     case MENU:
+      if (inputsOn)
+      {
+        input(); //funcio inputs
+        inputsOn = false;
+      }
+      
       n = int(cp5.get(Textfield.class,"Introdueix el Nombre Enemics").getText());
       if (startPressed)
       {
