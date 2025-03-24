@@ -130,6 +130,7 @@ void draw()
       {
         inputsOff();
         startPressed = false;
+        score = 0;
         menuDone();
         pjInizilize();
         pnjInizilize();
